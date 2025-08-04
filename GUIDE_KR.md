@@ -316,3 +316,10 @@ console.log('JSON 문자열:', jsonString);
 console.log('HMAC-SHA256:', hmacSha256(jsonString, salt)); 
 // expected X-HMAC-Signature: f96cf60394f6b8ad3c6de2d5b2b1d1a540f9529082a8eb9cee405bfbdd9f37a1
 ```
+
+## 요약
+
+- 인게임 유저 accessToken, 캐릭터 식별을 위한 sessionId가 필요 합니다.
+- ERC20과 인게임 자산 변환 규칙 및 게임 리소스를 [아이템 등록 양식](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287)을 다운받아 공유 부탁드립니다.
+- 인게임 자산 조회, 유저 주문 검증, 온체인 결과 처리 API 구현이 필요 합니다.
+(해당 레포지토리의 언어별 샘플 코드를 참고 부탁드립니다.)

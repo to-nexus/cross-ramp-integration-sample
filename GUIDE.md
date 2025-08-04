@@ -323,3 +323,11 @@ console.log('JSON string:', jsonString);
 console.log('HMAC-SHA256:', hmacSha256(jsonString, salt)); 
 // expected X-HMAC-Signature: f96cf60394f6b8ad3c6de2d5b2b1d1a540f9529082a8eb9cee405bfbdd9f37a1
 ``` 
+
+
+## Summary
+
+- In-game user accessToken and sessionId for character identification are required.
+- ERC20 and in-game asset conversion rules and game resources should be shared using the [Item Registration Form](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287).
+- Implementation of in-game asset query, user order validation, and on-chain result processing APIs is required.
+(Please refer to the language-specific sample code in this repository.)
