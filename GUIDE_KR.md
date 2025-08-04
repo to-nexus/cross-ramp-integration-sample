@@ -12,7 +12,7 @@ CrossRamp는 다음 두 가지 방식으로 적용할 수 있습니다:
 ### 데모
 - [**Pong Game - CROSS RAMP Demo**](https://ramp.crosstoken.io/demo): 접속 후 우측 상단 [CROSS RAMP] 클릭
 
-### Ramp 전반적 흐름도
+### CrossRamp Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -22,7 +22,7 @@ sequenceDiagram
     participant Backend as "CrossRamp Backend"
     participant TokenForge as "TokenForge"
 
-    User->>Frontend: 웹샵 접속 링크 접근(JWT(ingame) - 캐릭터까지 특정 할 수 있어야 함, projectId)
+    User->>Frontend: 웹샵 접속 링크 접근(JWT(ingame), sessionId(캐릭터식별), projectId)
     Frontend->>Backend: 랜더링에 필요한 추가 정보 요청(아이템 정보)
     Backend-->>Frontend: 아이템 정보 전달
     Frontend->>Game: (1) Assets, 인게임 재화 잔고 조회, 캐릭터명 및 지갑 매핑 여부 조회(JWT(ingame or cross auth))
@@ -64,7 +64,7 @@ https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-sessio
 
 | 파라미터명 | 설명 | 필수여부 |
 |-----------|------|----------|
-| projectId | nexus에서 발급하는 Project ID | 필수 |
+| projectId | 넥써쓰에서 발급하는 Project ID | 필수 |
 | sessionId | 캐릭터 식별 가능한 유니크 아이디 | 필수 |
 | accessToken | 인게임 유저 인증 토큰 | 필수 |
 | lang | 언어 선택 (zh, en, zh-Hant) | 선택 |
@@ -74,7 +74,7 @@ https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-sessio
 
 | 항목 | 설명 | 비고 |
 |------|------|------|
-| **hmac key** | ramp 백엔드와 게임 백엔드 간의 API 요청 및 응답에 상호 신뢰를 위해 사용되는 X-HMAC-SIGNATURE 검증 키 | 넥써쓰에서 제공 예정이고 넥써쓰, 게임사 양측 모두 보관<br>향후 developer console에서 생성,교체 가능 |
+| **hmac key** | Ramp 백엔드와 게임 백엔드 간의 API 요청 및 응답에 상호 신뢰를 위해 사용되는 X-HMAC-SIGNATURE 검증 키 | 넥써쓰에서 제공 예정이고 넥써쓰, 게임사 양측 모두 보관<br>향후 developer console에서 생성,교체 가능 |
 | **validator key** | 검증 API로 게임사 서버에 주문 정보 검증 요청이 들어오는 경우, 검증 후 정상 주문일 경우 해당 키로 서명 | 키는 게임사에 보관되고 넥써쓰는 퍼블릭 키만 보관<br>향후 developer console에서 생성,교체 가능 |
 | **Assets 조회 API** | Ramp UI에서 유저의 인게임 자산 조회에 사용 | API(v1) |
 | **Validate API** | Ramp UI에서 유저의 주문 검증에 사용 | API |
