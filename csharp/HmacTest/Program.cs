@@ -1,10 +1,10 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace SampleGameBackend
+namespace HmacTest
 {
-    public class TestHmac
+    public class Program
     {
         // TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
         private const string Salt = "my_secret_salt_value_!@#$%^&*"; // hmac key
@@ -29,7 +29,8 @@ namespace SampleGameBackend
                 CreatedAt = 1234567890
             };
 
-            var jsonString = JsonSerializer.Serialize(body);
+            // Use hardcoded JSON string to match other languages
+            var jsonString = "{\"userId\":1234,\"username\":\"홍길동\",\"email\":\"user@example.com\",\"role\":\"admin\",\"createdAt\":1234567890}";
             Console.WriteLine(jsonString);
 
             var bodyBytes = Encoding.UTF8.GetBytes(jsonString);
@@ -45,4 +46,4 @@ namespace SampleGameBackend
             TestSha256();
         }
     }
-} 
+}

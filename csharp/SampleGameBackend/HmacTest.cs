@@ -2,9 +2,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace SampleGameBackend
+namespace HmacTest
 {
-    public class TestHmac
+    public class Program
     {
         // TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
         private const string Salt = "my_secret_salt_value_!@#$%^&*"; // hmac key

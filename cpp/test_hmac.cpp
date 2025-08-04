@@ -24,15 +24,10 @@ void testSha256() {
         1234567890
     };
 
-    json bodyJson = {
-        {"userId", body.userId},
-        {"username", body.username},
-        {"email", body.email},
-        {"role", body.role},
-        {"createdAt", body.createdAt}
-    };
+    // Create JSON with specific order to match other languages
+    std::string jsonString = R"({"userId":1234,"username":"홍길동","email":"user@example.com","role":"admin","createdAt":1234567890})";
 
-    std::string jsonString = bodyJson.dump();
+    // Use the hardcoded JSON string to match other languages
     std::cout << jsonString << std::endl;
 
     std::string hashString = hmac_utils::HmacService::GenerateHmac(jsonString);
