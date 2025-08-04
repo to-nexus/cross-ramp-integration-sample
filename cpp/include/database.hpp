@@ -20,7 +20,7 @@ public:
     
     std::shared_ptr<models::SessionAssets> GetOrCreateSessionAssets(const std::string& session_id);
     bool CheckAndDeductAssets(const std::string& session_id, const std::vector<models::ValidateRequest::Intent::FromAsset>& from_assets);
-    bool AddAssets(const std::string& session_id, const std::vector<models::ExchangeResp::Intent::OutputAsset>& outputs);
+    bool AddAssets(const std::string& session_id, const std::vector<models::ExchangeResultRequest::Intent::OutputAsset>& outputs);
     bool StoreUUIDMapping(const std::string& uuid, const std::string& session_id);
     std::string GetSessionIDByUUID(const std::string& uuid);
 

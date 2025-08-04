@@ -21,7 +21,7 @@ namespace SampleGameBackend.Controllers
         }
 
         [HttpPost("result")]
-        public IActionResult ExchangeResult([FromBody] ExchangeResp req)
+        public IActionResult ExchangeResult([FromBody] ExchangeResultRequest req)
         {
             try
             {

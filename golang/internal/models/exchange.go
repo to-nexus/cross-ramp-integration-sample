@@ -5,8 +5,8 @@ import (
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// ExchangeResp exchange response structure
-type ExchangeResp struct {
+// ExchangeResultRequest exchange result request structure
+type ExchangeResultRequest struct {
 	UUID    string           `json:"uuid"`
 	TxHash  common.Hash      `json:"tx_hash"`
 	Receipt ethTypes.Receipt `json:"receipt"`

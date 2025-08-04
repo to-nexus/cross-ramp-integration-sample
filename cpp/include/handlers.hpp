@@ -18,7 +18,7 @@ public:
 
 class ExchangeResultHandler {
 public:
-    static bool ProcessExchangeResult(const models::ExchangeResp& request);
+    static bool ProcessExchangeResult(const models::ExchangeResultRequest& request);
 };
 
 } // namespace handlers 

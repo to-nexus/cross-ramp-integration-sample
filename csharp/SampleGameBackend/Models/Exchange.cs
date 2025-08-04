@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace SampleGameBackend.Models
 {
-    public class ExchangeResp
+    public class ExchangeResultRequest
     {
         [JsonPropertyName("uuid")]
         public string Uuid { get; set; } = string.Empty;

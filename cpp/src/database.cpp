@@ -93,7 +93,7 @@ bool Database::CheckAndDeductAssets(const std::string& session_id, const std::ve
     return true;
 }
 
-bool Database::AddAssets(const std::string& session_id, const std::vector<models::ExchangeResp::Intent::OutputAsset>& outputs) {
+bool Database::AddAssets(const std::string& session_id, const std::vector<models::ExchangeResultRequest::Intent::OutputAsset>& outputs) {
     std::lock_guard<std::mutex> lock(session_mutex_);
     
     auto it = session_assets_.find(session_id);

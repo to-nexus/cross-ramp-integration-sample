@@ -100,7 +100,7 @@ models::ValidateResponse ValidationHandler::ValidateUserActionHandler(const mode
     return response;
 }
 
-bool ExchangeResultHandler::ProcessExchangeResult(const models::ExchangeResp& request) {
+bool ExchangeResultHandler::ProcessExchangeResult(const models::ExchangeResultRequest& request) {
     if (request.intent.outputs.empty()) {
         return true;
     }

@@ -90,8 +90,8 @@ struct ValidateResponse {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(ValidateResponse, success, error_code, data)
 };
 
-// Exchange response structure
-struct ExchangeResp {
+// Exchange result request structure
+struct ExchangeResultRequest {
     std::string uuid;
     std::string tx_hash;
     struct {
@@ -106,7 +106,7 @@ struct ExchangeResp {
     };
     Intent intent;
     
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ExchangeResp, uuid, tx_hash, receipt, intent)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ExchangeResultRequest, uuid, tx_hash, receipt, intent)
 };
 
 } // namespace models 

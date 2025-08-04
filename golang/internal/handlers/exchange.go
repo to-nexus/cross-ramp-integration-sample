@@ -15,7 +15,7 @@ import (
 func ExchangeResultHandler(c *gin.Context) {
 
 	// Read request body
-	var req models.ExchangeResp
+	var req models.ExchangeResultRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		LogError(slog.Default(), "ResultHandler", err, "action", "Failed to bind request body")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind request body"})

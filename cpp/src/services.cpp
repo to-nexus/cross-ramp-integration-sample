@@ -65,7 +65,7 @@ bool ValidationService::ValidateAndProcessMint(const std::string& session_id, co
     return database::Database::GetInstance().CheckAndDeductAssets(session_id, from_assets);
 }
 
-bool ExchangeService::ProcessExchangeResult(const std::string& session_id, const std::vector<models::ExchangeResp::Intent::OutputAsset>& outputs, uint64_t receipt_status) {
+bool ExchangeService::ProcessExchangeResult(const std::string& session_id, const std::vector<models::ExchangeResultRequest::Intent::OutputAsset>& outputs, uint64_t receipt_status) {
     // Skip processing if receipt status is not 0x1
     if (receipt_status != 1) {
         std::cout << "ProcessExchangeResult: skipped - receipt_status: " << receipt_status << std::endl;

@@ -15,7 +15,7 @@ public:
 
 class ExchangeService {
 public:
-    static bool ProcessExchangeResult(const std::string& session_id, const std::vector<models::ExchangeResp::Intent::OutputAsset>& outputs, uint64_t receipt_status);
+    static bool ProcessExchangeResult(const std::string& session_id, const std::vector<models::ExchangeResultRequest::Intent::OutputAsset>& outputs, uint64_t receipt_status);
 };
 
 } // namespace services 

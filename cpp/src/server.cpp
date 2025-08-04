@@ -176,7 +176,7 @@ void GameBackendServer::HandleExchangeResult(const httplib::Request& req, httpli
     
     try {
         auto request_json = json::parse(req.body);
-        models::ExchangeResp request;
+        models::ExchangeResultRequest request;
         
         // Parse request (simplified)
         request.uuid = request_json["uuid"];
@@ -186,7 +186,7 @@ void GameBackendServer::HandleExchangeResult(const httplib::Request& req, httpli
         // Parse outputs (simplified)
         auto outputs_json = request_json["intent"]["outputs"];
         for (const auto& output : outputs_json) {
-            models::ExchangeResp::Intent::OutputAsset asset;
+            models::ExchangeResultRequest::Intent::OutputAsset asset;
             asset.asset_id = output["asset_id"];
             asset.amount = output["amount"];
             request.intent.outputs.push_back(asset);
