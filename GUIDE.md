@@ -59,7 +59,8 @@ sequenceDiagram
 #### Item Registration
 Until developer console support is available, share item information with Nexus using the form below, and Nexus will register the information.
 
-**Form Download**: [Item Registration Form](link)
+**Form Download**: [Item Registration Form](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287)
+)
 
 #### Access Link Example
 ```

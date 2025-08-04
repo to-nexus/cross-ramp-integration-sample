@@ -53,7 +53,7 @@ sequenceDiagram
 #### 아이템 등록
 Developer console 지원 전까지 아래 양식으로 아이템 정보를 넥써쓰에 공유, 넥써쓰에서 정보 등록
 
-**양식 다운로드**: [아이템 등록 양식](링크)
+**양식 다운로드**: [아이템 등록 양식](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287)
 
 #### 접속 링크 예시
 ```
@@ -164,8 +164,8 @@ curl -X GET "https://api.yourgame.com/assets?language=ko" \
 
 ### 검증 API
 
-유저의 인게임 재화 ↔ 토큰 교환 요청을 검증합니다.
-
+- 유저의 인게임 재화 ↔ 토큰 교환 요청을 검증합니다.
+- 
 #### Request 예시
 
 ```bash
