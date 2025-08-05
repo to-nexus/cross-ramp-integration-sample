@@ -190,8 +190,8 @@ curl -X POST "https://api.yourgame.com/validate" \
     "uuid": "c8ab8d7b-3fe7-....",
     "intent": {
       "method": "mint",
-      "from": { "type": "erc20", "id": "0x1234", "amount": 1000 },
-      "to": { "type": "asset", "id": "ITEM01", "amount": 1000 }
+      "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
+      "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
     }
   }'
 ```
