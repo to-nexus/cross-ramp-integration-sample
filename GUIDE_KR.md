@@ -67,6 +67,7 @@ https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-sessio
 | projectId | 넥써쓰에서 발급하는 Project ID | 필수 |
 | sessionId | 캐릭터 식별 가능한 유니크 아이디 | 필수 |
 | accessToken | 인게임 유저 인증 토큰 | 필수 |
+| network | mainnet,testnet 구분(생략 시 mainnet) | 선택 |
 | lang | 언어 선택 (zh, en, zh-Hant) | 선택 |
 | platform | web | 선택 |
 

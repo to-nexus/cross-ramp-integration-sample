@@ -74,6 +74,7 @@ https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-sessio
 | projectId | Project ID issued by Nexus | Required |
 | sessionId | Unique ID that can identify character | Required |
 | accessToken | In-game user authentication token | Required |
+| network | mainnet,testnet distinction (mainnet if omitted) | Optional |
 | lang | Language selection (zh, en, zh-Hant) | Optional |
 | platform | web | Optional |
 
