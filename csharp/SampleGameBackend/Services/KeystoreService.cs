@@ -13,7 +13,7 @@ namespace SampleGameBackend.Services
 
         public KeystoreService()
         {
-            // Go 코드에서 생성한 실제 keystore JSON
+            // Go 코드에서 생성한 실제 keystore JSON 예시
             // private key: 3c9817e3bdaca815773de4bc170e464c036149091783b44469b20abef7a31071
             var keyStore = @"{
                 ""address"": ""0x100cbc7ac2abdb4e75d8e08c6842d1dd8c04df73"",
@@ -44,8 +44,7 @@ namespace SampleGameBackend.Services
                 Console.WriteLine("✅ Keystore decryption successful");
                 
                 // 개인키, 공개키, 주소 로그 출력
-                var account = new Account(_privateKey);
-                Console.WriteLine($"🔑 Private Key: {_privateKey}");
+                var account = new Account(_privateKey);                
                 Console.WriteLine($"🔑 Public Key: {account.PublicKey}");
                 Console.WriteLine($"🔑 Address: {account.Address}");
             }
