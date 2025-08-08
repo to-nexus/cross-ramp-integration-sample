@@ -35,7 +35,7 @@ namespace SampleGameBackend.Controllers
                 // Log request body
                 _logger.LogInformation("ResultHandler: requestBody={RequestBody}", req);
 
-                if (req.Intent.Outputs.Count > 0)
+                if (req.Intent.To.Count > 0)
                 {
                     // Get SessionID by UUID
                     string sessionId;
@@ -55,7 +55,7 @@ namespace SampleGameBackend.Controllers
                         // Note: In C# version, we'll use a simple receipt status
                         // In real implementation, you would extract this from the receipt
                         var receiptStatus = 1u; // Assuming success
-                        _exchangeService.ProcessExchangeResult(sessionId, req.Intent.Outputs, receiptStatus);
+                        _exchangeService.ProcessExchangeResult(sessionId, req.Intent.To, receiptStatus);
                     }
                     catch (Exception ex)
                     {

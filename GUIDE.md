@@ -174,6 +174,11 @@ curl -X GET "https://api.yourgame.com/assets?language=ko" \
 
 Validates user's in-game currency ↔ token exchange requests.
 
+- For assemble intent type, deduct in-game assets.
+- Block duplicate requests for the same uuid.
+- Block if it violates game company's specific rules.
+- For disassemble, also block if it violates game company's specific rules (daily in-game currency issuance limits, character purchase limits, etc.).
+
 #### Request Example
 
 ```bash
@@ -190,6 +195,7 @@ curl -X POST "https://api.yourgame.com/validate" \
     "digest": "0x123456789...",
     "uuid": "c8ab8d7b-3fe7-....",
     "intent": {
+      "type": "assemble", // assemble || disassemble
       "method": "mint",
       "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
       "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
@@ -214,6 +220,10 @@ curl -X POST "https://api.yourgame.com/validate" \
 
 API for receiving exchange results between game assets and tokens.
 
+- If receipt.status is not 0x1, it means on-chain failure. (For assemble, in-game asset refund is required)
+- For disassemble, distribute in-game currency to the character.
+- Use uuid to identify orders and prevent duplicate processing.
+
 #### Request Example
 
 ```bash
@@ -223,11 +233,15 @@ curl -X POST "https://api.yourgame.com/result" \
     "session_id": "<DAPP_SESSION_ID>",
     "uuid": "4fec342b-8ad7-4e...",
     "tx_hash": "0x123456789.....",
-    "receipt": {},
+    "receipt": {
+      "status" : 0x1,
+      ...
+    },
     "intent": {
+      "type": "assemble", // assemble || disassemble
       "method": "mint",
-      "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
-      "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
+      "from": [{ "type": "asset", "id": "material_01", "amount": 1000 }],
+      "to": [{ "type": "erc20", "id": "0xabcd", "amount": 1000 }]
     }
   }'
 ```
@@ -332,3 +346,12 @@ console.log('HMAC-SHA256:', hmacSha256(jsonString, salt));
 - ERC20 and in-game asset conversion rules and game resources should be shared using the [Item Registration Form](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287).
 - Implementation of in-game asset query, user order validation, and on-chain result processing APIs is required.
 (Please refer to the language-specific sample code in this repository.)
+
+---
+
+## Recent Updates
+
+**v1.1.0 (2024-12-28)**
+- Add network parameter to UI Parameter Description
+- Fix ExchangeIntent structure inconsistency between guide and sample code
+- Add type field to ValidateIntent and ExchangeIntent across all languages

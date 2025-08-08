@@ -167,11 +167,7 @@ func GetOrCreateSessionAssets(sessionID string) (*models.SessionAssets, error) {
 }
 
 // CheckAndDeductAssets validate and deduct asset balance
-func CheckAndDeductAssets(sessionID string, fromAssets []struct {
-	Type   string `json:"type" binding:"required"`
-	ID     string `json:"id" binding:"required"`
-	Amount int    `json:"amount" binding:"required"`
-}) error {
+func CheckAndDeductAssets(sessionID string, fromAssets []models.PairAsset) error {
 	// Get session asset information
 	sessionAssets, err := GetOrCreateSessionAssets(sessionID)
 	if err != nil {
@@ -180,25 +176,25 @@ func CheckAndDeductAssets(sessionID string, fromAssets []struct {
 
 	// Validate and deduct balance for each asset
 	for _, asset := range fromAssets {
-		currentBalance, exists := sessionAssets.Assets[asset.ID]
+		currentBalance, exists := sessionAssets.Assets[asset.AssetID]
 		if !exists {
-			return fmt.Errorf("asset %s not found in session", asset.ID)
+			return fmt.Errorf("asset %s not found in session", asset.AssetID)
 		}
 
 		// Convert string to integer
 		currentAmount, err := strconv.Atoi(currentBalance)
 		if err != nil {
-			return fmt.Errorf("invalid balance format for asset %s", asset.ID)
+			return fmt.Errorf("invalid balance format for asset %s", asset.AssetID)
 		}
 
 		// Validate balance
-		if currentAmount < asset.Amount {
-			return fmt.Errorf("insufficient balance for asset %s: required %d, available %d", asset.ID, asset.Amount, currentAmount)
+		if currentAmount < int(asset.Amount) {
+			return fmt.Errorf("insufficient balance for asset %s: required %d, available %d", asset.AssetID, asset.Amount, currentAmount)
 		}
 
 		// Deduct
-		newBalance := currentAmount - asset.Amount
-		sessionAssets.Assets[asset.ID] = strconv.Itoa(newBalance)
+		newBalance := currentAmount - int(asset.Amount)
+		sessionAssets.Assets[asset.AssetID] = strconv.Itoa(newBalance)
 
 	}
 

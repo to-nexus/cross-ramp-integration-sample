@@ -21,10 +21,9 @@ func SetupRoutes(r *gin.Engine) {
 			assets.GET("", GetAssetsHandler)
 		}
 
-		// Order validation endpoints
+		// User action validation endpoints
 		validate := api.Group("/validate")
 		validate.Use(middleware.AuthMiddleware())
-		validate.Use(HMACMiddleware())
 		{
 			validate.POST("", ValidateUserActionHandler)
 		}
@@ -33,11 +32,20 @@ func SetupRoutes(r *gin.Engine) {
 		result.Use(cors.New(cors.Config{
 			AllowOrigins: []string{"*"},
 			AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowHeaders: []string{"Authorization", "X-Dapp-Authorization", "X-Dapp-SessionID", "Content-Type", "ORIGIN", "Content-Length", "Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "expires", "X-HMAC-Signature"},
+			AllowHeaders: []string{"Authorization", "X-Dapp-Authorization", "X-Dapp-SessionID", "Content-Type", "ORIGIN", "Content-Length", "Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "expires"},
 		}))
-		result.Use(HMACMiddleware())
 		{
 			result.POST("", ExchangeResultHandler)
+		}
+
+		enrole := api.Group("/enrole")
+		enrole.Use(middleware.AuthMiddleware())
+		{
+			enrole.GET("", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{
+					"message": "Success",
+				})
+			})
 		}
 	}
 

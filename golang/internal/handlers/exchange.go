@@ -13,21 +13,18 @@ import (
 
 // ExchangeResultHandler process result handler
 func ExchangeResultHandler(c *gin.Context) {
-
 	// Read request body
-	var req models.ExchangeResultRequest
+	var req models.ExchangeReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		LogError(slog.Default(), "ResultHandler", err, "action", "Failed to bind request body")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind request body"})
 		return
 	}
 
-	// TODO: We need a defense logic to prevent duplicate UUIDs in requests.
-
 	// Log request body
 	LogInfo(slog.Default(), "ResultHandler", "requestBody", req)
 
-	if len(req.Intent.Outputs) > 0 {
+	if req.Intent.Type == "disassemble" && len(req.Intent.To) > 0 {
 		// Get SessionID by UUID
 		sessionID, err := database.GetSessionIDByUUID(req.UUID)
 		if err != nil {
@@ -38,7 +35,7 @@ func ExchangeResultHandler(c *gin.Context) {
 
 		// Process exchange result
 		receiptStatus := uint64(req.Receipt.Status)
-		err = services.ProcessExchangeResult(sessionID, req.Intent.Outputs, receiptStatus)
+		err = services.ProcessExchangeResult(sessionID, req.Intent.To, receiptStatus)
 		if err != nil {
 			LogError(slog.Default(), "ResultHandler", err, "action", "Failed to process exchange result")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process exchange result"})

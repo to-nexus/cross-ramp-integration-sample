@@ -91,34 +91,15 @@ func TestValidateResultWorkflow(t *testing.T) {
 		UserAddress: testUserAddress,
 		ProjectID:   testProjectID,
 		Digest:      testDigest,
-		Intent: struct {
-			Method string `json:"method" binding:"required"`
-			From   []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			} `json:"from" binding:"required"`
-			To []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			} `json:"to" binding:"required"`
-		}{
+		Intent: models.ExchangeIntent{
+			Type:   "assemble",
 			Method: "mint",
-			From: []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			}{
-				{Type: "asset", ID: "asset_money", Amount: 1000},
-				{Type: "asset", ID: "asset_gold", Amount: 500},
+			From: []models.PairAsset{
+				{Type: "asset", AssetID: "asset_money", Amount: 1000},
+				{Type: "asset", AssetID: "asset_gold", Amount: 500},
 			},
-			To: []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			}{
-				{Type: "asset", ID: "item_gem", Amount: 1000},
+			To: []models.PairAsset{
+				{Type: "erc20", AssetID: "0x1234", Amount: 1000},
 			},
 		},
 	}
@@ -183,15 +164,14 @@ func TestValidateResultWorkflow(t *testing.T) {
 			}{},
 		},
 		Intent: models.ExchangeIntent{
-			ProjectID: testProjectID,
-			PairID:    1,
-			Token: models.PairToken{
-				TokenID: "0x1234",
-				Amount:  1000,
+			Type:   "assemble",
+			Method: "mint",
+			From: []models.PairAsset{
+				{Type: "asset", AssetID: "asset_money", Amount: 1000},
+				{Type: "asset", AssetID: "asset_gold", Amount: 500},
 			},
-			Outputs: []models.PairAsset{
-				{AssetID: "item_gem", Amount: 1000},
-				{AssetID: "asset_money", Amount: 500},
+			To: []models.PairAsset{
+				{Type: "erc20", AssetID: "0x1234", Amount: 1000},
 			},
 		},
 	}
@@ -251,33 +231,14 @@ func TestValidateResultWorkflowWithInsufficientBalance(t *testing.T) {
 		UserAddress: "0xB777C937fa1afC99606aFa85c5b83cFe7f82BabD",
 		ProjectID:   "test-project-id",
 		Digest:      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-		Intent: struct {
-			Method string `json:"method" binding:"required"`
-			From   []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			} `json:"from" binding:"required"`
-			To []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			} `json:"to" binding:"required"`
-		}{
+		Intent: models.ExchangeIntent{
+			Type:   "assemble",
 			Method: "mint",
-			From: []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			}{
-				{Type: "asset", ID: "asset_money", Amount: 999999999}, // 매우 큰 금액
+			From: []models.PairAsset{
+				{Type: "asset", AssetID: "asset_money", Amount: 999999999}, // 매우 큰 금액
 			},
-			To: []struct {
-				Type   string `json:"type" binding:"required"`
-				ID     string `json:"id" binding:"required"`
-				Amount int    `json:"amount" binding:"required"`
-			}{
-				{Type: "asset", ID: "item_gem", Amount: 1000},
+			To: []models.PairAsset{
+				{Type: "erc20", AssetID: "0x1234", Amount: 1000},
 			},
 		},
 	}
@@ -339,14 +300,14 @@ func TestValidateResultWorkflowWithInvalidUUID(t *testing.T) {
 			GasUsed:           &hexutil.Big{},
 		},
 		Intent: models.ExchangeIntent{
-			ProjectID: "test-project-id",
-			PairID:    1,
-			Token: models.PairToken{
-				TokenID: "0x1234",
-				Amount:  1000,
+			Type:   "assemble",
+			Method: "mint",
+			From: []models.PairAsset{
+				{Type: "asset", AssetID: "asset_money", Amount: 1000},
+				{Type: "asset", AssetID: "asset_gold", Amount: 500},
 			},
-			Outputs: []models.PairAsset{
-				{AssetID: "item_gem", Amount: 1000},
+			To: []models.PairAsset{
+				{Type: "erc20", AssetID: "0x1234", Amount: 1000},
 			},
 		},
 	}
@@ -393,33 +354,14 @@ func TestValidateResultWorkflowConcurrent(t *testing.T) {
 				UserAddress: "0xB777C937fa1afC99606aFa85c5b83cFe7f82BabD",
 				ProjectID:   "test-project-id",
 				Digest:      "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-				Intent: struct {
-					Method string `json:"method" binding:"required"`
-					From   []struct {
-						Type   string `json:"type" binding:"required"`
-						ID     string `json:"id" binding:"required"`
-						Amount int    `json:"amount" binding:"required"`
-					} `json:"from" binding:"required"`
-					To []struct {
-						Type   string `json:"type" binding:"required"`
-						ID     string `json:"id" binding:"required"`
-						Amount int    `json:"amount" binding:"required"`
-					} `json:"to" binding:"required"`
-				}{
+				Intent: models.ExchangeIntent{
+					Type:   "assemble",
 					Method: "mint",
-					From: []struct {
-						Type   string `json:"type" binding:"required"`
-						ID     string `json:"id" binding:"required"`
-						Amount int    `json:"amount" binding:"required"`
-					}{
-						{Type: "asset", ID: "asset_money", Amount: 100},
+					From: []models.PairAsset{
+						{Type: "asset", AssetID: "asset_money", Amount: 100},
 					},
-					To: []struct {
-						Type   string `json:"type" binding:"required"`
-						ID     string `json:"id" binding:"required"`
-						Amount int    `json:"amount" binding:"required"`
-					}{
-						{Type: "asset", ID: "item_gem", Amount: 100},
+					To: []models.PairAsset{
+						{Type: "erc20", AssetID: "0x1234", Amount: 1000},
 					},
 				},
 			}
@@ -457,13 +399,12 @@ func TestValidateResultWorkflowConcurrent(t *testing.T) {
 					CumulativeGasUsed: "0x1000000",
 				},
 				Intent: models.ExchangeIntent{
-					ProjectID: "test-project-id",
-					PairID:    1,
-					Token: models.PairToken{
-						TokenID: "0x1234",
-						Amount:  100,
+					Type:   "disassemble",
+					Method: "mint",
+					From: []models.PairAsset{
+						{Type: "erc20", AssetID: "0x1234", Amount: 1000},
 					},
-					Outputs: []models.PairAsset{
+					To: []models.PairAsset{
 						{AssetID: "item_gem", Amount: 100},
 					},
 				},

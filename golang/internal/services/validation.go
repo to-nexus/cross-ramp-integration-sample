@@ -2,6 +2,7 @@ package services
 
 import (
 	"sample-game-backend/internal/database"
+	"sample-game-backend/internal/models"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -12,25 +13,15 @@ var (
 )
 
 // ValidateIntent intent validation
-func ValidateIntent(intent struct {
-	Method string `json:"method" binding:"required"`
-	From   []struct {
-		Type   string `json:"type" binding:"required"`
-		ID     string `json:"id" binding:"required"`
-		Amount int    `json:"amount" binding:"required"`
-	} `json:"from" binding:"required"`
-	To []struct {
-		Type   string `json:"type" binding:"required"`
-		ID     string `json:"id" binding:"required"`
-		Amount int    `json:"amount" binding:"required"`
-	} `json:"to" binding:"required"`
-}) bool {
+func ValidateIntent(intent models.ExchangeIntent) bool {
 	// Validate allowed methods
 	allowedMethods := map[string]bool{
-		"mint":        true,
-		"transfer":    true,
-		"burn":        true,
-		"burn-permit": true,
+		"mint":                 true,
+		"transfer":             true,
+		"burn":                 true,
+		"burn-permit":          true,
+		"transfer-from":        true,
+		"transfer-from-permit": true,
 	}
 
 	if !allowedMethods[intent.Method] {
@@ -66,11 +57,7 @@ func GenerateValidatorSignature(userSig hexutil.Bytes, digest common.Hash) (hexu
 }
 
 // ValidateAndProcessMint mint validation and processing
-func ValidateAndProcessMint(sessionID string, fromAssets []struct {
-	Type   string `json:"type" binding:"required"`
-	ID     string `json:"id" binding:"required"`
-	Amount int    `json:"amount" binding:"required"`
-}) error {
+func ValidateAndProcessMint(sessionID string, fromAssets []models.PairAsset) error {
 	// Asset balance validation and deduction
 	return database.CheckAndDeductAssets(sessionID, fromAssets)
 }

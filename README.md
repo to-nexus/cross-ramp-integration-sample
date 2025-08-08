@@ -126,9 +126,10 @@ curl -X POST "http://localhost:8080/api/result" \
   -d '{
     "uuid": "exchange-uuid-123",
     "intent": {
-      "outputs": [
-        { "asset_id": "item_gem", "amount": 1000 }
-      ]
+      "type": "assemble",
+      "method": "mint",
+      "from": [{ "type": "asset", "id": "item_material", "amount": 1000 }],
+      "to": [{ "type": "asset", "id": "item_gem", "amount": 1000 }]
     },
     "receipt": {
       "status": 1

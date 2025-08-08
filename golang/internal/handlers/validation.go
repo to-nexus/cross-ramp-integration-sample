@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ValidateUserActionHandler order validation handler
+// ValidateUserActionHandler user action validation handler
 func ValidateUserActionHandler(c *gin.Context) {
 	var req models.ValidateRequest
 
@@ -48,7 +48,7 @@ func ValidateUserActionHandler(c *gin.Context) {
 	LogInfo(slog.Default(), "ValidateUserActionHandler", "sessionID", sessionID, "uuid", req.UUID, "req", string(requestBytes))
 
 	// For mint method, validate and deduct assets
-	if req.Intent.Method == "mint" || req.Intent.Method == "transfer" {
+	if req.Intent.Type == "assemble" {
 		if err := services.ValidateAndProcessMint(sessionID, req.Intent.From); err != nil {
 			ValidateErrorResponse(c, http.StatusBadRequest, ErrorCodeInsufficientBalance)
 			return

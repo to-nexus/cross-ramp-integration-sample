@@ -60,6 +60,7 @@ struct ValidateRequest {
     std::string digest;
     
     struct Intent {
+        std::string type;
         std::string method;
         struct FromAsset {
             std::string type;
@@ -98,11 +99,15 @@ struct ExchangeResultRequest {
         int status;
     } receipt;
     struct Intent {
-        struct OutputAsset {
-            std::string asset_id;
+        std::string type;
+        std::string method;
+        struct PairAsset {
+            std::string type;
+            std::string id;
             int amount;
         };
-        std::vector<OutputAsset> outputs;
+        std::vector<PairAsset> from;
+        std::vector<PairAsset> to;
     };
     Intent intent;
     

@@ -166,7 +166,11 @@ curl -X GET "https://api.yourgame.com/assets?language=ko" \
 ### 검증 API
 
 - 유저의 인게임 재화 ↔ 토큰 교환 요청을 검증합니다.
-- 
+- intent type이 assemble 일 경우 인게임 재화를 차감 합니다.
+- uuid에 대한 중복 요청이 있을 경우 차단 합니다.
+- 게임사에서 별도로 정한 규칙에 위배 된다면 차단 합니다.
+- disassemble의 경우에도 게임사에서 별도로 정한 규칙에 위배 된다면 차단 합니다.(인게임 재화의 일일 발행량 제한, 캐릭터별 구매 제한 등)
+
 #### Request 예시
 
 ```bash
@@ -183,6 +187,7 @@ curl -X POST "https://api.yourgame.com/validate" \
     "digest": "0x123456789...",
     "uuid": "c8ab8d7b-3fe7-....",
     "intent": {
+      "type": "assemble", // assemble || disassamble
       "method": "mint",
       "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
       "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
@@ -205,7 +210,8 @@ curl -X POST "https://api.yourgame.com/validate" \
 
 ### 교환 결과 전달 API
 
-게임 자산과 토큰 간 교환 결과를 전달받는 API입니다.
+- 게임 자산과 토큰 간 교환 결과를 전달받는 API입니다.
+- receipt.status가 0x1 이 아닌 경우 온체인에서 실패 입니다. (assemble일 경우 인게임 자산 환불 필요)
 
 #### Request 예시
 
@@ -216,10 +222,14 @@ curl -X POST "https://api.yourgame.com/result" \
     "session_id": "<DAPP_SESSION_ID>",
     "uuid": "4fec342b-8ad7-4e...",
     "tx_hash": "0x123456789.....",
-    "receipt": {},
+    "receipt": {
+      "status" : 0x1,
+      ...
+    },
     "intent": {
+      "type": "assemble", // assemble || disassamble
       "method": "mint",
-      "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
+      "from": [{ "type": "asset", "id": "material_01", "amount": 1000 }],
       "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
     }
   }'
@@ -324,3 +334,12 @@ console.log('HMAC-SHA256:', hmacSha256(jsonString, salt));
 - ERC20과 인게임 자산 변환 규칙 및 게임 리소스를 [아이템 등록 양식](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287)을 다운받아 공유 부탁드립니다.
 - 인게임 자산 조회, 유저 주문 검증, 온체인 결과 처리 API 구현이 필요 합니다.
 (해당 레포지토리의 언어별 샘플 코드를 참고 부탁드립니다.)
+
+---
+
+## 최근 업데이트
+
+**v1.1.0 (2024-12-28)**
+- UI 파라미터 설명에 network 파라미터 추가
+- 가이드와 샘플 코드 간 ExchangeIntent 구조 불일치 수정
+- 모든 언어에 ValidateIntent 및 ExchangeIntent type 필드 추가

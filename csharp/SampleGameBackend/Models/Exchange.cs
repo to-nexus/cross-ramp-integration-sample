@@ -37,19 +37,16 @@ namespace SampleGameBackend.Models
 
     public class ExchangeIntent
     {
-        [JsonPropertyName("project_id")]
-        public string ProjectId { get; set; } = string.Empty;
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty;
 
-        [JsonPropertyName("pair_id")]
-        public uint PairId { get; set; }
+        [JsonPropertyName("method")]
+        public string Method { get; set; } = string.Empty;
 
-        [JsonPropertyName("token")]
-        public PairToken Token { get; set; } = new();
+        [JsonPropertyName("from")]
+        public List<PairAsset> From { get; set; } = new();
 
-        [JsonPropertyName("materials")]
-        public List<PairAsset> Materials { get; set; } = new();
-
-        [JsonPropertyName("outputs")]
-        public List<PairAsset> Outputs { get; set; } = new();
+        [JsonPropertyName("to")]
+        public List<PairAsset> To { get; set; } = new();
     }
 } 

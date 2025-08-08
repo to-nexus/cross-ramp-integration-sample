@@ -19,29 +19,17 @@ type Response struct {
 	} `json:"data"`
 }
 
-// ValidateRequest order validation request structure
+// ValidateRequest user action validation request structure
 type ValidateRequest struct {
-	UUID        string `json:"uuid" binding:"required"`
-	UserSig     string `json:"user_sig" binding:"required"`
-	UserAddress string `json:"user_address" binding:"required"`
-	ProjectID   string `json:"project_id" binding:"required"`
-	Digest      string `json:"digest" binding:"required"`
-	Intent      struct {
-		Method string `json:"method" binding:"required"`
-		From   []struct {
-			Type   string `json:"type" binding:"required"`
-			ID     string `json:"id" binding:"required"`
-			Amount int    `json:"amount" binding:"required"`
-		} `json:"from" binding:"required"`
-		To []struct {
-			Type   string `json:"type" binding:"required"`
-			ID     string `json:"id" binding:"required"`
-			Amount int    `json:"amount" binding:"required"`
-		} `json:"to" binding:"required"`
-	} `json:"intent" binding:"required"`
+	UUID        string         `json:"uuid" binding:"required"`
+	UserSig     string         `json:"user_sig" binding:"required"`
+	UserAddress string         `json:"user_address" binding:"required"`
+	ProjectID   string         `json:"project_id" binding:"required"`
+	Digest      string         `json:"digest" binding:"required"`
+	Intent      ExchangeIntent `json:"intent" binding:"required"`
 }
 
-// ValidateResponse order validation response structure
+// ValidateResponse user action validation response structure
 type ValidateResponse struct {
 	Success   bool    `json:"success"`
 	ErrorCode *string `json:"errorCode,omitempty"`

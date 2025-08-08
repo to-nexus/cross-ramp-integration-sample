@@ -35,6 +35,7 @@ export interface AssetsResponse {
 }
 
 export interface ValidateRequestIntent {
+  type: string;
   method: string;
   from: Array<{
     type: string;
@@ -69,8 +70,16 @@ export interface ValidateResponse {
 }
 
 export interface ExchangeResultIntent {
-  outputs: Array<{
-    asset_id: string;
+  type: string;
+  method: string;
+  from: Array<{
+    type: string;
+    id: string;
+    amount: number;
+  }>;
+  to: Array<{
+    type: string;
+    id: string;
     amount: number;
   }>;
 }

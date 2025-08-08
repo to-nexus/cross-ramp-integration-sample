@@ -33,7 +33,7 @@ func main() {
 
 	println("Server started on port 8080")
 	println("API endpoint: http://localhost:8080/api/assets?language=ko")
-	println("Order validation API: http://localhost:8080/api/validate")
+	println("User action validation API: http://localhost:8080/api/validate")
 	println("Health check: http://localhost:8080/health")
 	println("Session-specific asset information is stored in go-memdb")
 

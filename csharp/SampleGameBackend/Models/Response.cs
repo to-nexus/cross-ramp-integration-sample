@@ -64,6 +64,9 @@ namespace SampleGameBackend.Models
 
     public class ValidateIntent
     {
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty;
+
         [JsonPropertyName("method")]
         public string Method { get; set; } = string.Empty;
 

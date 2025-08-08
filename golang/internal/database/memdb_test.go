@@ -82,13 +82,9 @@ func TestCheckAndDeductAssets(t *testing.T) {
 	initialGoldBalance := sessionAssets.Assets["asset_gold"]
 
 	// 자산 차감 테스트
-	deductAssets := []struct {
-		Type   string `json:"type" binding:"required"`
-		ID     string `json:"id" binding:"required"`
-		Amount int    `json:"amount" binding:"required"`
-	}{
-		{Type: "asset", ID: "asset_money", Amount: 1000},
-		{Type: "asset", ID: "asset_gold", Amount: 500},
+	deductAssets := []models.PairAsset{
+		{Type: "asset", AssetID: "asset_money", Amount: 1000},
+		{Type: "asset", AssetID: "asset_gold", Amount: 500},
 	}
 
 	err = CheckAndDeductAssets(testSessionID, deductAssets)
