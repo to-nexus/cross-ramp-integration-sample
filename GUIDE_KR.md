@@ -212,6 +212,8 @@ curl -X POST "https://api.yourgame.com/validate" \
 
 - 게임 자산과 토큰 간 교환 결과를 전달받는 API입니다.
 - receipt.status가 0x1 이 아닌 경우 온체인에서 실패 입니다. (assemble일 경우 인게임 자산 환불 필요)
+- disassamble일 경우 인게임 재화를 캐릭터에 지급 합니다.
+- uuid 로 주문을 식별하여 중복 처리를 방지 합니다.
 
 #### Request 예시
 
