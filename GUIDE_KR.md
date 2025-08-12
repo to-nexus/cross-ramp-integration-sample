@@ -247,6 +247,54 @@ curl -X POST "https://api.yourgame.com/result" \
 }
 ```
 
+### 주문 정보 확인 API
+- CROSS-RAMP가 게임사로 제공하는 API입니다.
+- 유저가 실행한 주문 정보를 확인하는 API입니다.
+- chain network 정보와 UUID로 주문을 확인합니다.
+
+#### Request 예시
+```bash
+curl 
+  -X GET 'https://cross-ramp-api.crosstoken.io/api/v1/order?network={chain_network}&uuid={user_uuid}' \
+  -H 'accept: application/json'
+```
+
+#### Response 예시
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "uuid": "665631ff-....",
+    "project_id": "project_id",
+    "session_id": "aebff8....",
+    "user_address": "0x1234567890123456789012345678901234567890",
+    "tx_hash": "0xcffc....",
+    "order_type": "item_to_token", // item_to_token || token_to_item
+    "order_status": "success",
+    "from": [
+      {
+        "type": "asset",
+        "id": "asset_money",
+        "amount": 100
+      },
+      {
+        "type": "asset",
+        "id": "asset_gold",
+        "amount": 100
+      }
+    ],
+    "to": [
+      {
+        "type": "ERC20",
+        "id": "0x0987654321098765432109876543210987654321",
+        "amount": 1
+      }
+    ]
+  }
+}
+```
+
 ## HMAC-Signature
 
 상호 요청에 대한 신뢰를 위해 보안 요청이 필요한 경우 HMAC을 사용하고 헤더에 `X-HMAC-SIGNATURE` 키로 서명 값을 요구합니다.
@@ -329,6 +377,26 @@ console.log('JSON 문자열:', jsonString);
 console.log('HMAC-SHA256:', hmacSha256(jsonString, salt)); 
 // expected X-HMAC-Signature: f96cf60394f6b8ad3c6de2d5b2b1d1a540f9529082a8eb9cee405bfbdd9f37a1
 ```
+
+## Webhook에 응답 보내기
+웹훅 수신을 확인하려면 서버가 다음을 반환해야 합니다.
+- 성공적인 응답의 경우 ```200``` HTTP 코드
+- 사전 정의된 요청대로 전달되지 않은 경우, <span style="color:skyblue"><b>문제 설명</b></span>이 포함된 ```400``` HTTP 코드
+- 서버에 일시적인 문제가 발생한 경우 ```5xx``` HTTP 코드
+
+CROSS RAMP가 <b>*교환 주문 결과*</b> 웹훅에 대한 응답을 수신하지 않았거나 ```5xx``` 코드가 포함된 응답을 수신한 경우 다음 규칙에 따라 재전송 합니다.
+- 5분 간격으로 2번 시도
+- 15분 간격으로 7번 시도
+- 60분 간격으로 10번 시도
+해당 규칙에 따라 웹훅 전송은 첫 번째 시도 후 12시간 이내에 최대 20회까지 재전송을 시도합니다.
+
+### Error
+HTTP 코드 400에 대한 오류 코드:
+ 코드 | 메시지 |
+|---|---|
+| INVALID_USER | 잘못된 게임유저 |
+| INVALID_BALANCE | 게임 유저 재화 부족 |
+| INVALID_MESSAGE | Message authentication code 불일치 |
 
 ## 요약
 
