@@ -30,7 +30,8 @@
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "viem": "^2.34.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

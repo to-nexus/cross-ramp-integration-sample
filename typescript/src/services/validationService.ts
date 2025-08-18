@@ -104,7 +104,9 @@ export class ValidationService {
       // digest is already keccak256 hashed, so we can sign it directly
       const digestBytes = ethers.getBytes(digest);
       
-      return await wallet.signMessage(digestBytes);
+      const signature = await wallet.signingKey.sign(digestBytes);
+      const compactSignature = ethers.Signature.from(signature).serialized;
+      return compactSignature;
     } catch (error) {
       throw new Error('Failed to generate validator signature');
     }
