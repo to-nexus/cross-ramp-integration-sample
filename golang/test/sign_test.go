@@ -14,7 +14,7 @@ func TestCryptoSign(t *testing.T) {
 		t.Fatalf("Failed to convert hex to ECDSA: %v", err)
 	}
 
-	digest := crypto.Keccak256([]byte("test"))
+	digest := crypto.Keccak256([]byte("test1"))
 	signature, err := crypto.Sign(digest, privateKey)
 	if err != nil {
 		t.Fatalf("Failed to sign: %v", err)

@@ -63,7 +63,7 @@ app.MapControllers();
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
-// 서버 시작 시 KeystoreService 초기화하여 로그 출력
+// Initialize KeystoreService at server startup and output logs
 var keystoreService = app.Services.GetRequiredService<KeystoreService>();
 Console.WriteLine("🔑 KeystoreService initialized successfully");
 

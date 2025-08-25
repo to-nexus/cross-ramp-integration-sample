@@ -1,6 +1,9 @@
 using Nethereum.Signer;
 using Nethereum.Web3.Accounts;
 using Nethereum.KeyStore;
+using Nethereum.Util;
+using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Model;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -13,7 +16,7 @@ namespace SampleGameBackend.Services
 
         public KeystoreService()
         {
-            // Go 코드에서 생성한 실제 keystore JSON 예시
+            // Actual keystore JSON example generated from Go code
             // private key: 3c9817e3bdaca815773de4bc170e464c036149091783b44469b20abef7a31071
             var keyStore = @"{
                 ""address"": ""0x100cbc7ac2abdb4e75d8e08c6842d1dd8c04df73"",
@@ -43,8 +46,8 @@ namespace SampleGameBackend.Services
                 _privateKey = DecryptKeystore(keyStore, passphrase);
                 Console.WriteLine("✅ Keystore decryption successful");
                 
-                // 개인키, 공개키, 주소 로그 출력
-                var account = new Account(_privateKey);                
+                // Output private key, public key, and address logs
+                var account = new Nethereum.Web3.Accounts.Account(_privateKey);                
                 Console.WriteLine($"🔑 Public Key: {account.PublicKey}");
                 Console.WriteLine($"🔑 Address: {account.Address}");
             }
@@ -60,11 +63,11 @@ namespace SampleGameBackend.Services
         {
             try
             {
-                // Nethereum의 KeyStoreService를 사용하여 실제 keystore 디크립션
+                // Decrypt keystore using Nethereum's KeyStoreService
                 var keyStoreService = new KeyStoreService();
                 var privateKeyBytes = keyStoreService.DecryptKeyStoreFromJson(passphrase, keystoreJson);
                 
-                // byte[]를 hex string으로 변환
+                // Convert byte[] to hex string
                 return "0x" + Convert.ToHexString(privateKeyBytes).ToLower();
             }
             catch (Exception ex)
@@ -77,17 +80,57 @@ namespace SampleGameBackend.Services
         {
             try
             {
-                var account = new Account(_privateKey);
-                var signer = new EthereumMessageSigner();
+                // Generate signature using EthECKey directly (same approach as CryptoSignTest)
+                var key = new EthECKey(_privateKey);
                 
-                // Go 버전과 동일한 서명 생성
-                var signature = signer.Sign(Encoding.UTF8.GetBytes(digest), _privateKey);
+                // Convert digest to byte array (handle hex string cases)
+                byte[] digestBytes;
+                if (digest.StartsWith("0x"))
+                {
+                    digestBytes = digest.HexToByteArray();
+                }
+                else if (digest.Length == 64) // hex string without 0x prefix
+                {
+                    digestBytes = Convert.FromHexString(digest);
+                }
+                else
+                {
+                    // Convert to UTF-8 bytes for regular strings
+                    digestBytes = Encoding.UTF8.GetBytes(digest);
+                }
                 
-                // v 값을 27로 조정 (Go 버전과 동일)
-                var signatureBytes = Convert.FromHexString(signature);
-                signatureBytes[64] += 27;
+                var signature = key.Sign(digestBytes);
                 
-                return Convert.ToHexString(signatureBytes);
+                // R and S values (64 bytes)
+                var rsBytes = signature.To64ByteArray();
+                
+                // Process V value (same logic as CryptoSignTest)
+                byte vByte;
+                if (signature.V != null && signature.V.Length > 0)
+                {
+                    // Check if signature.V[0] is already ethereum standard v value (27 or 28)
+                    if (signature.V[0] >= 27)
+                    {
+                        vByte = signature.V[0]; // Already correct ethereum v value
+                    }
+                    else
+                    {
+                        vByte = (byte)(signature.V[0] + 27); // Add 27 since it's recovery id
+                    }
+                }
+                else
+                {
+                    // Use default value if V is missing (recovery id 0 + 27 = 27)
+                    vByte = 27;
+                }
+                
+                // Full signature = R + S + V (65 bytes)
+                var fullSignature = new byte[65];
+                Array.Copy(rsBytes, 0, fullSignature, 0, 64);
+                fullSignature[64] = vByte;
+                
+                // Return as hex string (without 0x prefix)
+                return fullSignature.ToHex();
             }
             catch (Exception ex)
             {
@@ -97,7 +140,7 @@ namespace SampleGameBackend.Services
 
         public string GetAddress()
         {
-            var account = new Account(_privateKey);
+            var account = new Nethereum.Web3.Accounts.Account(_privateKey);
             return account.Address;
         }
     }
