@@ -1,6 +1,24 @@
 using SampleGameBackend.Database;
 using SampleGameBackend.Middleware;
 using SampleGameBackend.Services;
+using SampleGameBackend.Tests;
+
+// Check if running crypto tests
+if (args.Contains("--test-crypto"))
+{
+    Console.WriteLine("🔧 Running Crypto Sign Tests...");
+    try
+    {
+        CryptoSignTest.RunAllTests();
+        Console.WriteLine("\n✅ All crypto tests completed successfully!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"\n❌ Crypto tests failed: {ex.Message}");
+        Environment.Exit(1);
+    }
+    Environment.Exit(0);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,5 +72,6 @@ Console.WriteLine("📡 API endpoint: http://localhost:8080/api/assets?language=
 Console.WriteLine("🔐 Order validation API: http://localhost:8080/api/validate");
 Console.WriteLine("💚 Health check: http://localhost:8080/health");
 Console.WriteLine("💾 Session-specific asset information is stored in memory");
+Console.WriteLine("🔧 To run crypto tests: dotnet run --test-crypto");
 
 app.Run(); 

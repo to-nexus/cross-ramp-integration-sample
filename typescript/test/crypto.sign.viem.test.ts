@@ -99,4 +99,22 @@ describe('Crypto Sign with Viem', () => {
     expect(signature).toBeDefined();
     expect(signature.length).toBe(132);
   });
+
+  test('should sign with specific hex digest', async () => {
+    const privateKeyHex = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+    const account = privateKeyToAccount(privateKeyHex);
+    
+    // 특정 hex 값을 digest로 직접 사용 (viem은 hex 문자열을 받음)
+    const digest = '0xd91c81e564e4f69229a9224943fa9a79ff21b60fcef5096bfb79e1ce28591a85';
+    
+    const signature = await account.sign({ hash: digest });
+    
+    console.log('Hex digest:', digest);
+    console.log('Digest as bytes:', hexToBytes(digest));
+    console.log('Signature!!:', signature);
+    
+    expect(signature).toBeDefined();
+    expect(signature.length).toBe(132);
+    expect(signature.startsWith('0x')).toBe(true);
+  });
 });
