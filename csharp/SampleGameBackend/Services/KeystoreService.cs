@@ -99,7 +99,7 @@ namespace SampleGameBackend.Services
                     digestBytes = Encoding.UTF8.GetBytes(digest);
                 }
                 
-                var signature = key.Sign(digestBytes);
+                var signature = key.SignAndCalculateV(digestBytes);
                 
                 // R and S values (64 bytes)
                 var rsBytes = signature.To64ByteArray();
