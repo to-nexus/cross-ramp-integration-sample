@@ -1,5 +1,13 @@
 # CrossRamp 통합 가이드
 
+## 목차
+1. [개요](#개요)
+2. [준비 사항](#준비-사항)
+3. [구현 인터페이스](#구현-인터페이스)
+4. [표준 오류 코드](#표준-오류-코드)
+5. [HMAC-Signature](#hmac-signature)
+6. [요약](#요약)
+
 ## 개요
 
 CrossRamp는 블록체인 기술에 대한 별도의 이해 없이도 인게임 재화와 토큰 간의 교환을 손쉽게 구현할 수 있도록 지원하는 플랫폼입니다. 본 매뉴얼은 온보딩 개발사가 CrossRamp를 빠르고 효율적으로 적용할 수 있도록 단계별 가이드를 제공합니다.
@@ -57,7 +65,7 @@ Developer console 지원 전까지 아래 양식으로 아이템 정보를 넥�
 
 #### 접속 링크 예시
 ```
-https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-session-1754029744441&accessToken=demo-access-1754029744441&lang=zh&platform=web&timestamp=1754029746
+https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-session-1754029744441&accessToken=demo-access-1754029744441&lang=zh&platform=web
 ```
 
 #### UI 파라미터 설명
@@ -187,7 +195,7 @@ curl -X POST "https://api.yourgame.com/validate" \
     "digest": "0x123456789...",
     "uuid": "c8ab8d7b-3fe7-....",
     "intent": {
-      "type": "assemble", // assemble || disassamble
+      "type": "assemble", // assemble || disassemble
       "method": "mint",
       "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
       "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
@@ -212,7 +220,7 @@ curl -X POST "https://api.yourgame.com/validate" \
 
 - 게임 자산과 토큰 간 교환 결과를 전달받는 API입니다.
 - receipt.status가 0x1 이 아닌 경우 온체인에서 실패 입니다. (assemble일 경우 인게임 자산 환불 필요)
-- disassamble일 경우 인게임 재화를 캐릭터에 지급 합니다.
+- disassemble일 경우 인게임 재화를 캐릭터에 지급 합니다.
 - uuid 로 주문을 식별하여 중복 처리를 방지 합니다.
 
 #### Request 예시
@@ -229,7 +237,7 @@ curl -X POST "https://api.yourgame.com/result" \
       ...
     },
     "intent": {
-      "type": "assemble", // assemble || disassamble
+      "type": "assemble", // assemble || disassemble
       "method": "mint",
       "from": [{ "type": "asset", "id": "material_01", "amount": 1000 }],
       "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]

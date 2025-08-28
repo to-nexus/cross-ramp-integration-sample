@@ -64,7 +64,7 @@ Until developer console support is available, share item information with Nexus 
 
 #### Access Link Example
 ```
-https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-session-1754029744441&accessToken=demo-access-1754029744441&lang=zh&platform=web&timestamp=1754029746
+https://ramp.crosstoken.io/catalog?projectId=nexus-ramp-v1&sessionId=demo-session-1754029744441&accessToken=demo-access-1754029744441&lang=zh&platform=web
 ```
 
 #### UI Parameter Description
@@ -252,6 +252,96 @@ curl -X POST "https://api.yourgame.com/result" \
 {
   "success": true,
   "errorCode": null,
+  "data": null
+}
+```
+
+## Standard Error Codes
+
+Standardized error codes used in all API responses.
+
+### Common Error Codes
+
+| Error Code | Description | HTTP Status Code |
+|------------|-------------|------------------|
+| INVALID_REQUEST | Invalid request format or missing required fields | 400 |
+| INVALID_SESSION_ID | Missing or invalid session ID | 400 |
+| INVALID_HMAC_SIGNATURE | Invalid or missing HMAC signature | 401 |
+| INVALID_INTENT | Invalid intent structure or method | 400 |
+| INSUFFICIENT_BALANCE | Insufficient asset balance for operation | 400 |
+| UUID_MAPPING_FAILED | UUID mapping save failure | 500 |
+| SIGNATURE_GENERATION_FAILED | Validator signature generation failure | 500 |
+| DB_ERROR | Database operation failure | 500 |
+| INTERNAL_ERROR | Internal server error | 500 |
+| NOT_FOUND | Requested resource not found | 404 |
+
+### API Error Response Examples
+
+#### Assets Query API Error Responses
+
+**Session ID Error**
+```json
+{
+  "success": false,
+  "errorCode": "INVALID_SESSION_ID",
+  "data": null
+}
+```
+
+**Database Error**
+```json
+{
+  "success": false,
+  "errorCode": "DB_ERROR",
+  "data": null
+}
+```
+
+#### Validation API Error Responses
+
+**Invalid Request**
+```json
+{
+  "success": false,
+  "errorCode": "INVALID_REQUEST",
+  "data": null
+}
+```
+
+**Insufficient Balance**
+```json
+{
+  "success": false,
+  "errorCode": "INSUFFICIENT_BALANCE",
+  "data": null
+}
+```
+
+**Signature Generation Failed**
+```json
+{
+  "success": false,
+  "errorCode": "SIGNATURE_GENERATION_FAILED",
+  "data": null
+}
+```
+
+#### Exchange Result API Error Responses
+
+**HMAC Signature Error**
+```json
+{
+  "success": false,
+  "errorCode": "INVALID_HMAC_SIGNATURE",
+  "data": null
+}
+```
+
+**UUID Mapping Failed**
+```json
+{
+  "success": false,
+  "errorCode": "UUID_MAPPING_FAILED",
   "data": null
 }
 ```
