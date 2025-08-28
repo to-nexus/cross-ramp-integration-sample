@@ -256,25 +256,6 @@ curl -X POST "https://api.yourgame.com/result" \
 }
 ```
 
-## Standard Error Codes
-
-Standardized error codes used in all API responses.
-
-### Common Error Codes
-
-| Error Code | Description | HTTP Status Code |
-|------------|-------------|------------------|
-| INVALID_REQUEST | Invalid request format or missing required fields | 400 |
-| INVALID_SESSION_ID | Missing or invalid session ID | 400 |
-| INVALID_HMAC_SIGNATURE | Invalid or missing HMAC signature | 401 |
-| INVALID_INTENT | Invalid intent structure or method | 400 |
-| INSUFFICIENT_BALANCE | Insufficient asset balance for operation | 400 |
-| UUID_MAPPING_FAILED | UUID mapping save failure | 500 |
-| SIGNATURE_GENERATION_FAILED | Validator signature generation failure | 500 |
-| DB_ERROR | Database operation failure | 500 |
-| INTERNAL_ERROR | Internal server error | 500 |
-| NOT_FOUND | Requested resource not found | 404 |
-
 ### API Error Response Examples
 
 #### Assets Query API Error Responses
