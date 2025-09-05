@@ -197,8 +197,8 @@ curl -X POST "https://api.yourgame.com/validate" \
     "intent": {
       "type": "assemble", // assemble || disassemble
       "method": "mint",
-      "from": [{ "type": "erc20", "id": "0x1234", "amount": 1000 }],
-      "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
+      "from": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }],
+      "to": [{ "type": "erc20", "id": "0x1234", "amount": 1 }]
     }
   }'
 ```
@@ -240,7 +240,7 @@ curl -X POST "https://api.yourgame.com/result" \
       "type": "assemble", // assemble || disassemble
       "method": "mint",
       "from": [{ "type": "asset", "id": "material_01", "amount": 1000 }],
-      "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
+      "to": [{ "type": "erc20", "id": "0x1234", "amount": 1 }]
     }
   }'
 ```
@@ -294,8 +294,8 @@ curl
     ],
     "to": [
       {
-        "type": "ERC20",
-        "id": "0x0987654321098765432109876543210987654321",
+        "type": "erc20",
+        "id": "0x1234",
         "amount": 1
       }
     ]
