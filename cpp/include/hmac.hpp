@@ -11,10 +11,9 @@ namespace hmac_utils {
 
 class HmacService {
 public:
-    // TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
     static const std::string HMAC_SALT;
     
-    // Generate HMAC signature for given data
+    // Generate HMAC signature for given data (following guide specification)
     static std::string GenerateHmac(const std::string& data);
     
     // Validate HMAC signature
@@ -25,6 +24,10 @@ public:
     
     // Convert hex string to bytes
     static std::vector<unsigned char> HexToBytes(const std::string& hex);
+    
+private:
+    // Base64 URL decoding function (as per guide specification)
+    static std::vector<unsigned char> Base64UrlDecode(const std::string& str);
 };
 
 } // namespace hmac_utils 

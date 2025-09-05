@@ -6,7 +6,6 @@ namespace HmacTest
 {
     public class Program
     {
-        // TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
         private const string Salt = "my_secret_salt_value_!@#$%^&*"; // hmac key
 
         public class Body
@@ -16,6 +15,19 @@ namespace HmacTest
             public string Email { get; set; } = "";
             public string Role { get; set; } = "";
             public int CreatedAt { get; set; }
+        }
+
+        // Base64 URL decoding function (as per guide specification)
+        private static byte[] Base64UrlDecode(string str)
+        {
+            // Convert URL safe base64 to standard base64
+            str = str.Replace('-', '+').Replace('_', '/');
+            // Add padding (if needed)
+            while (str.Length % 4 != 0)
+            {
+                str += '=';
+            }
+            return Convert.FromBase64String(str);
         }
 
         public static void TestSha256()
@@ -29,11 +41,12 @@ namespace HmacTest
                 CreatedAt = 1234567890
             };
 
-            var jsonString = JsonSerializer.Serialize(body);
-            Console.WriteLine(jsonString);
+            var bodyBytes = JsonSerializer.SerializeToUtf8Bytes(body);
+            Console.WriteLine(Encoding.UTF8.GetString(bodyBytes));
 
-            var bodyBytes = Encoding.UTF8.GetBytes(jsonString);
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(Salt));
+            // Use Base64 URL decoding as per guide
+            var saltBytes = Base64UrlDecode(Salt);
+            using var hmac = new HMACSHA256(saltBytes);
             var hashBytes = hmac.ComputeHash(bodyBytes);
             var hashString = Convert.ToHexString(hashBytes).ToLower();
 

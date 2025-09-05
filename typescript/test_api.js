@@ -1,7 +1,18 @@
 const crypto = require('crypto');
 
-// HMAC salt
-const salt = "my_secret_salt_value_!@#$%^&*";
+// HMAC salt from guide example
+const salt = "my_secret_salt_value_!@#$%^&*"; // hmac key
+
+// Base64 URL decoding function (as per guide specification)
+function base64UrlDecode(str) {
+  // Convert URL safe base64 to standard base64
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding (if needed)
+  while (str.length % 4) {
+    str += '=';
+  }
+  return Buffer.from(str, 'base64');
+}
 
 // Test request body
 const requestBody = {
@@ -11,6 +22,7 @@ const requestBody = {
   digest: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   uuid: "test-uuid-123",
   intent: {
+    type: "assemble", // Added type field as per guide
     method: "mint",
     from: [
       { type: "asset", id: "asset_money", amount: 1000 }
@@ -24,13 +36,17 @@ const requestBody = {
 // Generate HMAC signature
 function generateHmac(data) {
   const jsonString = JSON.stringify(data);
-  const hmac = crypto.createHmac('sha256', salt);
+  console.log('JSON string:', jsonString);
+  
+  // Use Base64 URL decoding as per guide
+  const saltBytes = base64UrlDecode(salt);
+  const hmac = crypto.createHmac('sha256', saltBytes);
   hmac.update(jsonString);
   return hmac.digest('hex');
 }
 
 const hmacSignature = generateHmac(requestBody);
-console.log('HMAC Signature:', hmacSignature);
+console.log('HMAC-SHA256:', hmacSignature);
 
 // Test validation API
 import fetch from 'node-fetch';

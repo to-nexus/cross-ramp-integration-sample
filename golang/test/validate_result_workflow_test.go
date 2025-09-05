@@ -2,6 +2,10 @@ package test
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -36,6 +40,23 @@ type SimpleResultRequest struct {
 		} `json:"logs"`
 	} `json:"receipt"`
 	Intent models.ExchangeIntent `json:"intent"`
+}
+
+// generateHMACSignature 가이드에 따라 HMAC 서명을 생성하는 함수
+func generateHMACSignature(data []byte, salt string) (string, error) {
+	// Base64 URL 디코딩
+	saltBytes, err := base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(salt)
+	if err != nil {
+		return "", err
+	}
+
+	// HMAC-SHA256 생성
+	h := hmac.New(sha256.New, saltBytes)
+	h.Write(data)
+	hashBytes := h.Sum(nil)
+	hashString := hex.EncodeToString(hashBytes)
+
+	return hashString, nil
 }
 
 // setupTestRouter 테스트용 라우터 설정
@@ -84,6 +105,9 @@ func TestValidateResultWorkflow(t *testing.T) {
 	testProjectID := "test-project-id"
 	testDigest := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
 	testBloom := "0x561234561234561234561234561234561234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+	// HMAC 키 설정 (가이드에 따라)
+	testHMACKey := "my_secret_salt_value_!@#$%^&*" // 가이드의 예시 키 사용
+
 	// 1단계: Validate API 호출
 	validateReq := models.ValidateRequest{
 		UUID:        testUUID,
@@ -107,12 +131,17 @@ func TestValidateResultWorkflow(t *testing.T) {
 	validateReqBytes, err := json.Marshal(validateReq)
 	require.NoError(t, err, "Failed to marshal validate request")
 
+	validateHMACSignature, err := generateHMACSignature(validateReqBytes, testHMACKey)
+	require.NoError(t, err, "Failed to generate HMAC signature for validate request")
+	fmt.Printf("🔐 Validate API HMAC Signature: %s\n", validateHMACSignature)
+
 	// Validate API 요청
 	validateReqHTTP := httptest.NewRequest("POST", "/api/validate", bytes.NewBuffer(validateReqBytes))
 	validateReqHTTP.Header.Set("Content-Type", "application/json")
 	validateReqHTTP.Header.Set("Authorization", "Bearer test_cross_auth_jwt_token")
 	validateReqHTTP.Header.Set("X-Dapp-Authorization", "Bearer test_dapp_access_token")
 	validateReqHTTP.Header.Set("X-Dapp-SessionID", testSessionID)
+	validateReqHTTP.Header.Set("X-HMAC-SIGNATURE", validateHMACSignature)
 
 	validateRecorder := httptest.NewRecorder()
 	router.ServeHTTP(validateRecorder, validateReqHTTP)
@@ -179,9 +208,14 @@ func TestValidateResultWorkflow(t *testing.T) {
 	resultReqBytes, err := json.Marshal(resultReq)
 	require.NoError(t, err, "Failed to marshal result request")
 
+	resultHMACSignature, err := generateHMACSignature(resultReqBytes, testHMACKey)
+	require.NoError(t, err, "Failed to generate HMAC signature for result request")
+	fmt.Printf("🔐 Result API HMAC Signature: %s\n", resultHMACSignature)
+
 	// Result API 요청
 	resultReqHTTP := httptest.NewRequest("POST", "/api/result", bytes.NewBuffer(resultReqBytes))
 	resultReqHTTP.Header.Set("Content-Type", "application/json")
+	resultReqHTTP.Header.Set("X-HMAC-SIGNATURE", resultHMACSignature)
 
 	resultRecorder := httptest.NewRecorder()
 	router.ServeHTTP(resultRecorder, resultReqHTTP)
@@ -223,6 +257,8 @@ func TestValidateResultWorkflowWithInsufficientBalance(t *testing.T) {
 	// 테스트 데이터
 	testUUID := "test-insufficient-uuid"
 	testSessionID := "test-session-insufficient"
+	// HMAC 키 설정 (가이드에 따라)
+	testHMACKey := "my_secret_salt_value_!@#$%^&*" // 가이드의 예시 키 사용
 
 	// 1단계: Validate API 호출 (잔액 부족 시나리오)
 	validateReq := models.ValidateRequest{
@@ -246,12 +282,17 @@ func TestValidateResultWorkflowWithInsufficientBalance(t *testing.T) {
 	validateReqBytes, err := json.Marshal(validateReq)
 	require.NoError(t, err, "Failed to marshal validate request")
 
+	validateHMACSignature, err := generateHMACSignature(validateReqBytes, testHMACKey)
+	require.NoError(t, err, "Failed to generate HMAC signature for validate request")
+	fmt.Printf("🔐 Insufficient Balance Test - Validate API HMAC Signature: %s\n", validateHMACSignature)
+
 	// Validate API 요청
 	validateReqHTTP := httptest.NewRequest("POST", "/api/validate", bytes.NewBuffer(validateReqBytes))
 	validateReqHTTP.Header.Set("Content-Type", "application/json")
 	validateReqHTTP.Header.Set("Authorization", "Bearer test_cross_auth_jwt_token")
 	validateReqHTTP.Header.Set("X-Dapp-Authorization", "Bearer test_dapp_access_token")
 	validateReqHTTP.Header.Set("X-Dapp-SessionID", testSessionID)
+	validateReqHTTP.Header.Set("X-HMAC-SIGNATURE", validateHMACSignature)
 
 	validateRecorder := httptest.NewRecorder()
 	router.ServeHTTP(validateRecorder, validateReqHTTP)
@@ -277,6 +318,8 @@ func TestValidateResultWorkflowWithInvalidUUID(t *testing.T) {
 
 	// 테스트 데이터
 	invalidUUID := "invalid-uuid-not-stored"
+	// HMAC 키 설정 (가이드에 따라)
+	testHMACKey := "my_secret_salt_value_!@#$%^&*" // 가이드의 예시 키 사용
 
 	// Result API 호출 (UUID가 저장되지 않은 경우)
 	resultReq := SimpleResultRequest{
@@ -315,9 +358,15 @@ func TestValidateResultWorkflowWithInvalidUUID(t *testing.T) {
 	resultReqBytes, err := json.Marshal(resultReq)
 	require.NoError(t, err, "Failed to marshal result request")
 
+	// HMAC 서명 생성 (가이드에 따라)
+	resultHMACSignature, err := generateHMACSignature(resultReqBytes, testHMACKey)
+	require.NoError(t, err, "Failed to generate HMAC signature for result request")
+	fmt.Printf("🔐 Invalid UUID Test - Result API HMAC Signature: %s\n", resultHMACSignature)
+
 	// Result API 요청
 	resultReqHTTP := httptest.NewRequest("POST", "/api/result", bytes.NewBuffer(resultReqBytes))
 	resultReqHTTP.Header.Set("Content-Type", "application/json")
+	resultReqHTTP.Header.Set("X-HMAC-SIGNATURE", resultHMACSignature)
 
 	resultRecorder := httptest.NewRecorder()
 	router.ServeHTTP(resultRecorder, resultReqHTTP)
@@ -342,6 +391,9 @@ func TestValidateResultWorkflowConcurrent(t *testing.T) {
 
 	// 동시 요청 테스트
 	done := make(chan bool, 5)
+	// HMAC 키 설정 (가이드에 따라)
+	testHMACKey := "my_secret_salt_value_!@#$%^&*" // 가이드의 예시 키 사용
+
 	for i := 0; i < 5; i++ {
 		go func(id int) {
 			testUUID := fmt.Sprintf("concurrent-uuid-%d", id)
@@ -367,11 +419,15 @@ func TestValidateResultWorkflowConcurrent(t *testing.T) {
 			}
 
 			validateReqBytes, _ := json.Marshal(validateReq)
+
+			validateHMACSignature, _ := generateHMACSignature(validateReqBytes, testHMACKey)
+
 			validateReqHTTP := httptest.NewRequest("POST", "/api/validate", bytes.NewBuffer(validateReqBytes))
 			validateReqHTTP.Header.Set("Content-Type", "application/json")
 			validateReqHTTP.Header.Set("Authorization", "Bearer test_cross_auth_jwt_token")
 			validateReqHTTP.Header.Set("X-Dapp-Authorization", "Bearer test_dapp_access_token")
 			validateReqHTTP.Header.Set("X-Dapp-SessionID", testSessionID)
+			validateReqHTTP.Header.Set("X-HMAC-SIGNATURE", validateHMACSignature)
 
 			validateRecorder := httptest.NewRecorder()
 			router.ServeHTTP(validateRecorder, validateReqHTTP)
@@ -411,8 +467,11 @@ func TestValidateResultWorkflowConcurrent(t *testing.T) {
 			}
 
 			resultReqBytes, _ := json.Marshal(resultReq)
+			resultHMACSignature, _ := generateHMACSignature(resultReqBytes, testHMACKey)
+
 			resultReqHTTP := httptest.NewRequest("POST", "/api/result", bytes.NewBuffer(resultReqBytes))
 			resultReqHTTP.Header.Set("Content-Type", "application/json")
+			resultReqHTTP.Header.Set("X-HMAC-SIGNATURE", resultHMACSignature)
 
 			resultRecorder := httptest.NewRecorder()
 			router.ServeHTTP(resultRecorder, resultReqHTTP)

@@ -3,6 +3,21 @@ import { HMAC_SALT } from '../types';
 
 export class HmacService {
   /**
+   * Base64 URL decode function
+   * @param str - Base64 URL encoded string
+   * @returns Decoded buffer
+   */
+  private static base64UrlDecode(str: string): Buffer {
+    // Convert URL safe base64 to standard base64
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding (if needed)
+    while (str.length % 4) {
+      str += '=';
+    }
+    return Buffer.from(str, 'base64');
+  }
+
+  /**
    * Generate HMAC signature for given data
    * @param data - Data to sign
    * @returns HMAC signature as hex string
@@ -11,7 +26,9 @@ export class HmacService {
     const jsonString = JSON.stringify(data);
     const bodyBytes = Buffer.from(jsonString, 'utf8');
     
-    const hmac = crypto.createHmac('sha256', HMAC_SALT);
+    // Use Base64 URL decoding as per guide
+    const saltBytes = this.base64UrlDecode(HMAC_SALT);
+    const hmac = crypto.createHmac('sha256', saltBytes);
     hmac.update(bodyBytes);
     
     return hmac.digest('hex');
@@ -40,7 +57,9 @@ export class HmacService {
   static generateHmacFromString(requestBody: string): string {
     const bodyBytes = Buffer.from(requestBody, 'utf8');
     
-    const hmac = crypto.createHmac('sha256', HMAC_SALT);
+    // Use Base64 URL decoding as per guide
+    const saltBytes = this.base64UrlDecode(HMAC_SALT);
+    const hmac = crypto.createHmac('sha256', saltBytes);
     hmac.update(bodyBytes);
     
     return hmac.digest('hex');
