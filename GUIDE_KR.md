@@ -349,8 +349,9 @@ func TestSha256(t *testing.T) {
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
 	t.Log(string(bodyBytes))
-	
-	hmac := hmac.New(sha256.New, []byte(salt))
+
+	saltByte, _ := base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(salt)
+	hmac := hmac.New(sha256.New, saltByte)
 	hmac.Write(bodyBytes)
 	hashBytes := hmac.Sum(nil)
 	hashString := hex.EncodeToString(hashBytes)
@@ -364,8 +365,19 @@ func TestSha256(t *testing.T) {
 ```javascript
 const crypto = require('crypto');
 
+// Base64 URL 디코딩
+function base64UrlDecode(str) {
+    // URL safe base64를 표준 base64로 변환
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // 패딩 추가 (필요한 경우)
+    while (str.length % 4) {
+        str += '=';
+    }
+    return Buffer.from(str, 'base64');
+}
+
 function hmacSha256(data, salt) {
-    return crypto.createHmac('sha256', salt).update(data).digest('hex');
+    return crypto.createHmac('sha256', base64UrlDecode(salt)).update(data).digest('hex');
 }
 
 // JSON 객체 정의 request body
