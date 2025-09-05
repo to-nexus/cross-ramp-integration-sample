@@ -4,7 +4,9 @@
 1. [Overview](#overview)
 2. [Prerequisites](#prerequisites)
 3. [Implementation Interfaces](#implementation-interfaces)
-4. [HMAC-Signature](#hmac-signature)
+4. [Standard Error Codes](#standard-error-codes)
+5. [HMAC-Signature](#hmac-signature)
+6. [Summary](#summary)
 
 ## Overview
 
@@ -18,7 +20,7 @@ CrossRamp can be implemented in two ways:
 ### Demo
 - **[Pong Game - CROSS RAMP Demo](https://ramp.crosstoken.io/demo)**: Click [CROSS RAMP] in the top right after accessing
 
-### CrossRamp Overall Flow
+### CrossRamp Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -28,7 +30,7 @@ sequenceDiagram
     participant Backend as "CrossRamp Backend"
     participant TokenForge as "TokenForge"
 
-    User->>Frontend: Access webshop link (JWT(ingame) - must be able to specify character, projectId)
+    User->>Frontend: Access webshop link (JWT(ingame), sessionId(character identification), projectId)
     Frontend->>Backend: Request additional information for rendering (item information)
     Backend-->>Frontend: Deliver item information
     Frontend->>Game: (1) Assets, Query in-game currency balance, character name and wallet mapping status (JWT(ingame or cross auth))
@@ -60,7 +62,6 @@ sequenceDiagram
 Until developer console support is available, share item information with Nexus using the form below, and Nexus will register the information.
 
 **Form Download**: [Item Registration Form](https://docs.google.com/spreadsheets/d/13gJN6Sm6qlXnZqY_XB6hSWP7oU211qKmzNB-xW8ChrA/edit?gid=598496287#gid=598496287)
-)
 
 #### Access Link Example
 ```
@@ -241,7 +242,7 @@ curl -X POST "https://api.yourgame.com/result" \
       "type": "assemble", // assemble || disassemble
       "method": "mint",
       "from": [{ "type": "asset", "id": "material_01", "amount": 1000 }],
-      "to": [{ "type": "erc20", "id": "0xabcd", "amount": 1000 }]
+      "to": [{ "type": "asset", "id": "ITEM01", "amount": 1000 }]
     }
   }'
 ```
@@ -256,74 +257,51 @@ curl -X POST "https://api.yourgame.com/result" \
 }
 ```
 
-### API Error Response Examples
+### Order Information Query API
+- API provided by CROSS-RAMP to game companies.
+- API for checking order information executed by users.
+- Check orders using chain network information and UUID.
 
-#### Assets Query API Error Responses
-
-**Session ID Error**
-```json
-{
-  "success": false,
-  "errorCode": "INVALID_SESSION_ID",
-  "data": null
-}
+#### Request Example
+```bash
+curl 
+  -X GET 'https://cross-ramp-api.crosstoken.io/api/v1/order?network={chain_network}&uuid={user_uuid}' \
+  -H 'accept: application/json'
 ```
 
-**Database Error**
+#### Response Example
 ```json
 {
-  "success": false,
-  "errorCode": "DB_ERROR",
-  "data": null
-}
-```
-
-#### Validation API Error Responses
-
-**Invalid Request**
-```json
-{
-  "success": false,
-  "errorCode": "INVALID_REQUEST",
-  "data": null
-}
-```
-
-**Insufficient Balance**
-```json
-{
-  "success": false,
-  "errorCode": "INSUFFICIENT_BALANCE",
-  "data": null
-}
-```
-
-**Signature Generation Failed**
-```json
-{
-  "success": false,
-  "errorCode": "SIGNATURE_GENERATION_FAILED",
-  "data": null
-}
-```
-
-#### Exchange Result API Error Responses
-
-**HMAC Signature Error**
-```json
-{
-  "success": false,
-  "errorCode": "INVALID_HMAC_SIGNATURE",
-  "data": null
-}
-```
-
-**UUID Mapping Failed**
-```json
-{
-  "success": false,
-  "errorCode": "UUID_MAPPING_FAILED",
-  "data": null
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "uuid": "665631ff-....",
+    "project_id": "project_id",
+    "session_id": "aebff8....",
+    "user_address": "0x1234567890123456789012345678901234567890",
+    "tx_hash": "0xcffc....",
+    "order_type": "item_to_token", // item_to_token || token_to_item
+    "order_status": "success",
+    "from": [
+      {
+        "type": "asset",
+        "id": "asset_money",
+        "amount": 100
+      },
+      {
+        "type": "asset",
+        "id": "asset_gold",
+        "amount": 100
+      }
+    ],
+    "to": [
+      {
+        "type": "ERC20",
+        "id": "0x0987654321098765432109876543210987654321",
+        "amount": 1
+      }
+    ]
+  }
 }
 ```
 
@@ -373,8 +351,9 @@ func TestSha256(t *testing.T) {
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
 	t.Log(string(bodyBytes))
-	
-	hmac := hmac.New(sha256.New, []byte(salt))
+
+	saltByte, _ := base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(salt)
+	hmac := hmac.New(sha256.New, saltByte)
 	hmac.Write(bodyBytes)
 	hashBytes := hmac.Sum(nil)
 	hashString := hex.EncodeToString(hashBytes)
@@ -388,8 +367,19 @@ func TestSha256(t *testing.T) {
 ```javascript
 const crypto = require('crypto');
 
+// Base64 URL decoding
+function base64UrlDecode(str) {
+    // Convert URL safe base64 to standard base64
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding (if needed)
+    while (str.length % 4) {
+        str += '=';
+    }
+    return Buffer.from(str, 'base64');
+}
+
 function hmacSha256(data, salt) {
-    return crypto.createHmac('sha256', salt).update(data).digest('hex');
+    return crypto.createHmac('sha256', base64UrlDecode(salt)).update(data).digest('hex');
 }
 
 // Define JSON object request body
@@ -408,8 +398,27 @@ console.log('JSON string:', jsonString);
 // Output result
 console.log('HMAC-SHA256:', hmacSha256(jsonString, salt)); 
 // expected X-HMAC-Signature: f96cf60394f6b8ad3c6de2d5b2b1d1a540f9529082a8eb9cee405bfbdd9f37a1
-``` 
+```
 
+## Sending Response to Webhook
+To confirm webhook reception, the server must return the following:
+- ```200``` HTTP code for successful response
+- ```400``` HTTP code with <span style="color:skyblue"><b>problem description</b></span> if not delivered as predefined request
+- ```5xx``` HTTP code if temporary server problem occurs
+
+If CROSS RAMP does not receive a response to the <b>*exchange order result*</b> webhook or receives a response containing ```5xx``` code, it will retransmit according to the following rules:
+- 2 attempts at 5-minute intervals
+- 7 attempts at 15-minute intervals
+- 10 attempts at 60-minute intervals
+According to these rules, webhook transmission will attempt retransmission up to 20 times within 12 hours after the first attempt.
+
+### Error
+Error codes for HTTP code 400:
+| Code | Message |
+|---|---|
+| INVALID_USER | Invalid game user |
+| INVALID_BALANCE | Insufficient game user currency |
+| INVALID_MESSAGE | Message authentication code mismatch |
 
 ## Summary
 
