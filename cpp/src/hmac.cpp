@@ -1,18 +1,48 @@
 #include "hmac.hpp"
 #include <cstring>
 #include <algorithm>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
 
 namespace hmac_utils {
 
-// TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
 const std::string HmacService::HMAC_SALT = "my_secret_salt_value_!@#$%^&*";
+
+std::vector<unsigned char> HmacService::Base64UrlDecode(const std::string& str) {
+    std::string modified = str;
+    
+    // Convert URL safe base64 to standard base64
+    std::replace(modified.begin(), modified.end(), '-', '+');
+    std::replace(modified.begin(), modified.end(), '_', '/');
+    
+    // Add padding (if needed)
+    while (modified.length() % 4 != 0) {
+        modified += '=';
+    }
+    
+    // Decode base64
+    BIO* bio = BIO_new_mem_buf(modified.c_str(), modified.length());
+    BIO* b64 = BIO_new(BIO_f_base64());
+    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    bio = BIO_push(b64, bio);
+    
+    std::vector<unsigned char> decoded(modified.length());
+    int decodedLength = BIO_read(bio, decoded.data(), modified.length());
+    decoded.resize(decodedLength);
+    
+    BIO_free_all(bio);
+    return decoded;
+}
 
 std::string HmacService::GenerateHmac(const std::string& data) {
     std::vector<unsigned char> hmac(SHA256_DIGEST_LENGTH);
     
+    // Use Base64 URL decoding as per guide
+    std::vector<unsigned char> saltBytes = Base64UrlDecode(HMAC_SALT);
+    
     HMAC(EVP_sha256(), 
-         HMAC_SALT.c_str(), 
-         HMAC_SALT.length(),
+         saltBytes.data(), 
+         saltBytes.size(),
          reinterpret_cast<const unsigned char*>(data.c_str()),
          data.length(),
          hmac.data(),

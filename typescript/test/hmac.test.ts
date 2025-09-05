@@ -1,6 +1,6 @@
 import { HmacService } from '../src/services/hmacService';
 
-// TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
+// HMAC salt from guide example
 const salt = "my_secret_salt_value_!@#$%^&*"; // hmac key
 
 interface Body {
