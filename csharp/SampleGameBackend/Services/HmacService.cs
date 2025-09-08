@@ -6,15 +6,28 @@ namespace SampleGameBackend.Services
 {
     public class HmacService
     {
-        // TODO: HMAC salt - In actual implementation, load from environment variables or configuration file
-    private const string HMACSalt = "my_secret_salt_value_!@#$%^&*";
+        private const string HMACSalt = "my_secret_salt_value_!@#$%^&*";
 
-        public static string GenerateHmac(object data)
+        // Base64 URL decoding function (as per guide specification)
+        private static byte[] Base64UrlDecode(string str)
         {
-            var jsonString = JsonSerializer.Serialize(data);
-            var bodyBytes = Encoding.UTF8.GetBytes(jsonString);
+            // Convert URL safe base64 to standard base64
+            str = str.Replace('-', '+').Replace('_', '/');
+            // Add padding (if needed)
+            while (str.Length % 4 != 0)
+            {
+                str += '=';
+            }
+            return Convert.FromBase64String(str);
+        }
+
+        public static string GenerateHmac(string requestBody)
+        {
+            var bodyBytes = Encoding.UTF8.GetBytes(requestBody);
             
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(HMACSalt));
+            // Use Base64 URL decoding as per guide
+            var saltBytes = Base64UrlDecode(HMACSalt);
+            using var hmac = new HMACSHA256(saltBytes);
             var hashBytes = hmac.ComputeHash(bodyBytes);
             return Convert.ToHexString(hashBytes).ToLower();
         }
