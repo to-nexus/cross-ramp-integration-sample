@@ -411,12 +411,42 @@ CROSS RAMP가 <b>*교환 주문 결과*</b> 웹훅에 대한 응답을 수신하
 해당 규칙에 따라 웹훅 전송은 첫 번째 시도 후 12시간 이내에 최대 20회까지 재전송을 시도합니다.
 
 ### Error
-HTTP 코드 400에 대한 오류 코드:
- 코드 | 메시지 |
-|---|---|
-| INVALID_USER | 잘못된 게임유저 |
-| INVALID_BALANCE | 게임 유저 재화 부족 |
-| INVALID_MESSAGE | Message authentication code 불일치 |
+```
+{
+    "errorCode"    int
+    "errorMessage" string
+}
+```
+#### Define Errors
+|http status|error code|desc.|
+|-----------|------|----------|
+|500|1001|internal server error|
+|400|2001|bad request parameter (GET)|
+||2002|bad request JSON (POST)|
+|401|3001|unauthorized|
+
+#### Error Example
+```
+{
+  "errorCode": 1001,
+  "errorMessage": "character not exists"
+}
+
+{
+  "errorCode": 2001,
+  "errorMessage": "param1 is required"
+}
+
+{
+  "errorCode": 2002,
+  "errorMessage": "invalid JSON"
+}
+
+{
+  "errorCode": 3001,
+  "errorMessage": "session id is required"
+}
+```
 
 ## 요약
 

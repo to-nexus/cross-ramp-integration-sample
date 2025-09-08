@@ -413,12 +413,42 @@ If CROSS RAMP does not receive a response to the <b>*exchange order result*</b> 
 According to these rules, webhook transmission will attempt retransmission up to 20 times within 12 hours after the first attempt.
 
 ### Error
-Error codes for HTTP code 400:
-| Code | Message |
-|---|---|
-| INVALID_USER | Invalid game user |
-| INVALID_BALANCE | Insufficient game user currency |
-| INVALID_MESSAGE | Message authentication code mismatch |
+```
+{
+    "errorCode"    int
+    "errorMessage" string
+}
+```
+#### Define Errors
+|http status|error code|desc.|
+|-----------|------|----------|
+|500|1001|internal server error|
+|400|2001|bad request parameter (GET)|
+||2002|bad request JSON (POST)|
+|401|3001|unauthorized|
+
+#### Error Example
+```
+{
+  "errorCode": 1001,
+  "errorMessage": "character not exists"
+}
+
+{
+  "errorCode": 2001,
+  "errorMessage": "param1 is required"
+}
+
+{
+  "errorCode": 2002,
+  "errorMessage": "invalid JSON"
+}
+
+{
+  "errorCode": 3001,
+  "errorMessage": "session id is required"
+}
+```
 
 ## Summary
 
