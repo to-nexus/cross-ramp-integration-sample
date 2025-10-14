@@ -303,6 +303,44 @@ curl
 }
 ```
 
+### Reclaim (NFT in-game 아이템 수령) API
+- Minting 된 NFT의 소유자가 게임 내 해당 아이템을 수령하기 위해 제공되는 API입니다.
+- Header에 X-HMAC-SIGNATURE, X-Dapp-Authorization, X-Dapp-SessionID를 포함합니다.
+- 게임사 서버에서 request body로 hmac을 생성 후 X-HMAC-SIGNATURE과 비교하여 요청의 타당성을 검증합니다.
+
+```
+⚠️ 주의
+Reclaim API 특성 상 NFT 소유자는 언제든 Reclaim을 요청할 수 있습니다.
+게임사에서 요청 검증 시 반드시 이미 지급이 완료되었는지 여부를 확인해야 합니다.
+``` 
+#### Request 예시
+```bash
+curl -X POST "https://api.yourgame.com/reclaim" \
+  -H "Content-Type: application/json" \
+  -H "X-HMAC-SIGNATURE: <HMAC_SIGNATURE>" \
+  -H "X-Dapp-Authorization: Bearer <DAPP_ACCESS_TOKEN>" \
+  -H "X-Dapp-SessionID: <DAPP_SESSION_ID>" \
+  -d '{
+      "account": "0x1234567890123456789012345678901234567890",
+      "asset_id": "asset_fire_bow",
+      "uid": "asset_fire_bow_uid"
+  }'
+```
+#### Response 예시
+```json
+{
+  "success": true,
+  "data": {
+    "account": "0x1234567890123456789012345678901234567890",
+    "session_id": <DAPP_SESSION_ID>,
+    "asset_id": "asset_fire_bow",
+    "uid": "asset_fire_bow_uid",
+    "from": "Luis",
+    "to": "Theo"
+  }
+}
+```
+
 ## HMAC-Signature
 
 상호 요청에 대한 신뢰를 위해 보안 요청이 필요한 경우 HMAC을 사용하고 헤더에 `X-HMAC-SIGNATURE` 키로 서명 값을 요구합니다.
