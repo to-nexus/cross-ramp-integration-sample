@@ -305,6 +305,46 @@ curl
 }
 ```
 
+### Reclaim (NFT In-game Item Claim) API
+- API provided for the owner of minted NFTs to claim the corresponding item in the game.
+- Includes X-HMAC-SIGNATURE, X-Dapp-Authorization, and X-Dapp-SessionID in the header.
+- The game server generates HMAC from the request body and compares it with X-HMAC-SIGNATURE to validate the legitimacy of the request.
+
+```
+⚠️ Warning
+Due to the nature of the Reclaim API, NFT owners can request Reclaim at any time.
+When validating requests, game companies must verify whether the item has already been issued.
+```
+
+#### Request Example
+```bash
+curl -X POST "https://api.yourgame.com/reclaim" \
+  -H "Content-Type: application/json" \
+  -H "X-HMAC-SIGNATURE: <HMAC_SIGNATURE>" \
+  -H "X-Dapp-Authorization: Bearer <DAPP_ACCESS_TOKEN>" \
+  -H "X-Dapp-SessionID: <DAPP_SESSION_ID>" \
+  -d '{
+      "account": "0x1234567890123456789012345678901234567890",
+      "asset_id": "asset_fire_bow",
+      "uid": "asset_fire_bow_uid"
+  }'
+```
+
+#### Response Example
+```json
+{
+  "success": true,
+  "data": {
+    "account": "0x1234567890123456789012345678901234567890",
+    "session_id": <DAPP_SESSION_ID>,
+    "asset_id": "asset_fire_bow",
+    "uid": "asset_fire_bow_uid",
+    "from": "Luis",
+    "to": "Theo"
+  }
+}
+```
+
 ## HMAC-Signature
 
 For security requests requiring mutual trust, HMAC is used and signature values are required in the header with the `X-HMAC-SIGNATURE` key.
