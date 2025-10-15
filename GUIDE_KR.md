@@ -486,6 +486,350 @@ CROSS RAMP가 <b>*교환 주문 결과*</b> 웹훅에 대한 응답을 수신하
 }
 ```
 
+## API Only
+CrossRamp front-end를 거치지 않고 client 서버(게임사 등)와 ramp api 서버 간 직접 통신으로 token을 mint, burn 하는 기능입니다.
+### 공통 사항
+#### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as "Client"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"
+
+    User->>Client: Client 접속 링크 접근(JWT(ingame), sessionId(캐릭터식별), projectId)
+    Client->>Backend: (1) Project token 정보 확인
+    Backend->>Client: Project token 정보 전달
+    Client->>Backend: (2) Token forge 컨트랙트 주소 확인
+    Backend->>Client: Token forge 주소 정보 전달
+```
+#### 1. Project token 정보 확인
+Request
+```bash
+curl -X 'GET' \
+  'https://cross-ramp-api.crosstoken.io/api/v1/tokens?network={testnet||mainnet}&project_id={project_id}' \
+  -H 'accept: application/json'
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": [
+    {
+      "token_id": {token id},
+      "name": {token 이름},
+      "symbol": {token 심볼},
+      "address": {token 주소},
+      "decimals": 18,
+      "token_type": "ERC20",
+      "network": {network},
+      "img_url": "..."
+    }
+  ]
+}
+```
+
+#### 2. Forge 컨트랙트 주소 확인
+Request
+```bash
+curl -X 'GET' \
+  'https://cross-ramp-api.crosstoken.io/api/v1/project?network={testnet||mainnet}&project_id={project_id}' \
+  -H 'accept: application/json'
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "id": 1,
+    "project_id": {project_id},
+    "project_name": "...",
+    "network": {network},
+    "forge_address": {forge 컨트랙트 주소},
+    "icon_url": "...",
+    "background_url": "...",
+    "webhook_url": "...",
+    "http_method": "GET",
+    "is_siwe_supported": false,
+    "is_enabled": true
+  }
+}
+```
+
+### Case 1. Mint or Transfer (User에게 토큰을 발행하는 경우)
+#### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as "Client"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"\
+
+    Client->>Backend: (3) User의 forge nonce 확인
+    Backend->>Client: User의 forge nonce 전달
+
+    Client->>Backend: (4) token mint 또는 transfer 요청
+    Backend->>TokenForge: Transaction 생성을 위한 Recover 데이터 요청
+    TokenForge->>Backend: Recover 데이터 전달
+    Backend->>Client: Validator 서명을 위한 Digest 전달 (validate webhook)
+    Client->>Backend: Digest에 대한 Validator 서명 전달
+    Backend->>TokenForge: transaction 요청
+    TokenForge->>Backend: Transaction 결과 전달(성공/실패)
+    Backend->>Client: 요청 결과 전달(성공/실패) (result webhook)
+    Client->>User: 요청 결과 전달(성공/실패)
+```
+
+#### 3. User의 forge nonce 확인
+Request
+```bash
+curl -X 'GET' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/nonce?network={testnet||mainnet}&owner={user_address}&forge={forge_contract_address}' \
+  -H 'accept: application/json'
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "nonce": "164"
+  }
+}
+```
+
+#### 4. Mint 또는 Transfer 요청
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/exchange' \
+  -H 'accept: application/json' \
+  -H 'X-Dapp-Authorization: {dapp authorization (JWT)}' \
+  -H 'X-Dapp-SessionID: {dapp session id}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "intent": {
+    "method": "mint||transfer",
+    "project_id": {project id},
+    "request": {
+        // client가 정의한 request 내용
+    },
+    "request_id": {client 정의 request id},
+    "token_id": {token id}
+  },
+  "signature": {
+    "network": {networkd},
+    "recover": {
+      "data": {
+        "account": {user 주소},
+        "amount": {mint 할 수량 (wei)},
+        "deadline": {요청 유효 시간},
+        "nonce": {user forge nonce},
+        "token": {token 주소},
+        "fee_bps": {수수료율},
+        "fee_recipient": {수수료 수취 지갑 주소},
+      }
+    }
+  }
+}'
+
+** fee_bps 및 fee_recipient의 경우 수수료를 적용하지 않는 경우 미기입
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "session_id": {dapp session id},
+    "uuid": {ramp server uuid},
+    "tx_hash": {transcation hash},
+    "receipt": {transaction receipt},
+    "intent": {
+      "project_id": {project id},
+      "token_id": {token id},
+      "method": "mint||transfer",
+      "request_id": {client 정의 request id},
+      "request": {
+        //client 정의 request 내용
+      }
+    }
+  }
+}
+```
+
+### Case 2. Burn-Permit or Transfer-From_Permit (User 지갑으로부터 토큰을 감소시키는 경우)
+이 경우 user의 지갑에 있는 자산을 움직여야 하기 때문에 유저 서명이 필요합니다.
+#### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as "Client"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"
+
+    Client->>Backend: (3) User가 서명할 eip712 메세지 요청
+    Backend->>Client: eip712 메세지 전달
+    Client->>User: 서명 요청
+
+    Client->>Backend: (4) token burn-permit 또는 transfer-from-permit 요청
+    Backend->>TokenForge: Transaction 생성을 위한 Recover 데이터 요청
+    TokenForge->>Backend: Recover 데이터 전달
+    Backend->>Client: Validator 서명을 위한 Digest 전달 (validate webhook)
+    Client->>Backend: Digest에 대한 Validator 서명 전달
+    Backend->>TokenForge: Transaction 요청
+    TokenForge->>Backend: Transaction 결과 전달(성공/실패)
+    Backend->>Client: 요청 결과 전달(성공/실패) (result webhook)
+    Client->>User: 요청 결과 전달(성공/실패)
+```
+#### 3. EIP712 메세지 요청
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/eip712/user' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "account": {user 주소},
+  "action": "burn-permit||transfer-from-permit",
+  "amount": {burn-pemit 또는 transfer-from-permit 수량 (wei)},
+  "network": {network},
+  "project_id": {project id},
+  "token": {token 주소}
+}'
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "recover": {
+      "data": {
+        "account": {user 주소},
+        "amount": {burn-pemit 또는 transfer-from-permit 수량 (wei)},
+        "deadline": "1760498825",
+        "fee_bps": "0",
+        "fee_recipient": "0x0000000000000000000000000000000000000000",
+        "nonce": {user forge nonce},
+        "token": {token 주소}
+      },
+      "domain_separator": {domain separator},
+      "permit_nonce": {user permit nonce}
+    },
+    "hash": {unsigned hash},
+    "uuid": {forge uuid},
+    "params": [
+      {user 주소},
+      {
+        "domain": {
+          "chainId": {chain id},
+          "name": {token 이름},
+          "verifyingContract": {verifying 컨트랙트 주소},
+          "version": "1"
+        },
+        "message": {
+          "deadline": "1760498825",
+          "nonce": {user permit nonce},
+          "owner": {user 주소},
+          "spender": {forge 컨트랙트 주소},
+          "value": {burn-pemit 또는 transfer-from-permit 수량 (wei)}
+        },
+        "primaryType": "Permit",
+        "types": {
+          "Permit": [
+            {
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "name": "spender",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+#### 4. Burn-Permit 또는 Transfer-From-Permit 요청
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/exchange' \
+  -H 'accept: application/json' \
+  -H 'X-Dapp-Authorization: {dapp authorization}' \
+  -H 'X-Dapp-SessionID: {dapp session id}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "intent": {
+    "method": "burn-permit||transfer-from-permit",
+    "project_id": {project id},
+    "request": {
+        // client가 정의한 request 내용
+    },
+    "request_id": {client 정의 request id},
+    "token_id": {token id}
+  },
+  "signature": {
+    "hash": {unsigned hash},
+    "network": {network},
+    "recover": {
+      "data": {
+        "account": {user 주소},
+        "amount": {burn-pemit 또는 transfer-from-permit 수량 (wei)},
+        "deadline": "1760499638",
+        "fee_bps": "0",
+        "fee_recipient": "0x0000000000000000000000000000000000000000",
+        "nonce": "168",
+        "token": {token 주소}
+      },
+      "domain_separator": {domain separator},
+      "permit_nonce": "30"
+    },
+    "user_sig": {user 서명}
+  }
+}'
+
+** signature.recover의 경우 eip712 메세지 api 결과의 recover를 그대로 넣으면 됨
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "session_id": {dapp session id},
+    "uuid": {ramp server uuid},
+    "tx_hash": {transcation hash},
+    "receipt": {transaction receipt},
+    "intent": {
+      "project_id": {project id},
+      "token_id": {token id},
+      "method": "burn-permit||transfer-from-permit",
+      "request_id": {client 정의 request id},
+      "request": {
+        //client 정의 request 내용
+      }
+    }
+  }
+}
+```
+---
 ## 요약
 
 - 인게임 유저 accessToken, 캐릭터 식별을 위한 sessionId가 필요 합니다.
