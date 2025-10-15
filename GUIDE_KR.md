@@ -805,7 +805,7 @@ curl -X 'POST' \
   }
 }'
 
-** signature.recover의 경우 eip712 메세지 api 결과의 recover를 그대로 넣으면 됨
+** signature.recover의 경우 eip712 메세지 api 결과의 recover와 동일
 ```
 Response
 ```json
