@@ -502,77 +502,6 @@ According to these rules, webhook transmission will attempt retransmission up to
 ## API Only
 This feature allows token minting and burning through direct communication between the client server (game company, etc.) and ramp API server without going through the CrossRamp front-end.
 
-### Common Requirements
-#### Diagram
-```mermaid
-sequenceDiagram
-    actor User
-    participant Client as "Client"
-    participant Backend as "CrossRamp Backend"
-    participant TokenForge as "TokenForge"
-
-    User->>Client: Access client link (JWT(ingame), sessionId(character identification), projectId)
-    Client->>Backend: (1) Check project token information
-    Backend->>Client: Deliver project token information
-    Client->>Backend: (2) Check token forge contract address
-    Backend->>Client: Deliver token forge address information
-```
-
-#### 1. Check Project Token Information
-Request
-```bash
-curl -X 'GET' \
-  'https://cross-ramp-api.crosstoken.io/api/v1/tokens?network={testnet||mainnet}&project_id={project_id}' \
-  -H 'accept: application/json'
-```
-Response
-```json
-{
-  "code": 200,
-  "message": "OK",
-  "data": [
-    {
-      "token_id": {token id},
-      "name": {token name},
-      "symbol": {token symbol},
-      "address": {token address},
-      "decimals": 18,
-      "token_type": "ERC20",
-      "network": {network},
-      "img_url": "..."
-    }
-  ]
-}
-```
-
-#### 2. Check Forge Contract Address
-Request
-```bash
-curl -X 'GET' \
-  'https://cross-ramp-api.crosstoken.io/api/v1/project?network={testnet||mainnet}&project_id={project_id}' \
-  -H 'accept: application/json'
-```
-Response
-```json
-{
-  "code": 200,
-  "message": "OK",
-  "data": {
-    "id": 1,
-    "project_id": {project_id},
-    "project_name": "...",
-    "network": {network},
-    "forge_address": {forge contract address},
-    "icon_url": "...",
-    "background_url": "...",
-    "webhook_url": "...",
-    "http_method": "GET",
-    "is_siwe_supported": false,
-    "is_enabled": true
-  }
-}
-```
-
 ### Case 1. Mint or Transfer (Issuing tokens to users)
 #### Diagram
 ```mermaid
@@ -582,26 +511,51 @@ sequenceDiagram
     participant Backend as "CrossRamp Backend"
     participant TokenForge as "TokenForge"
 
-    Client->>Backend: (3) Check user's forge nonce
-    Backend->>Client: Deliver user's forge nonce
-
-    Client->>Backend: (4) Request token mint or transfer
+    Client->>Backend: (1) Request prepare for token mint or transfer order
     Backend->>TokenForge: Request recover data for transaction creation
     TokenForge->>Backend: Deliver recover data
-    Backend->>Client: Deliver digest for validator signature (validate webhook)
-    Client->>Backend: Deliver validator signature for digest
+    Backend->>Client: Deliver digest for validator signature (with uuid, forge uuid)
+    Client->>Backend: (2) Deliver validator signature for digest (request exchange execution)
     Backend->>TokenForge: Request transaction
     TokenForge->>Backend: Deliver transaction result (success/failure)
     Backend->>Client: Deliver request result (success/failure) (result webhook)
     Client->>User: Deliver request result (success/failure)
 ```
 
-#### 3. Check User's Forge Nonce
+#### 1. Request prepare for token mint or transfer order
 Request
 ```bash
-curl -X 'GET' \
-  'https://cross-ramp-api.crosstoken.io/api/v2/nonce?network={testnet||mainnet}&owner={user_address}&forge={forge_contract_address}' \
-  -H 'accept: application/json'
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/prepare' \
+  -H 'accept: application/json' \
+  -H 'X-HMAC-Signature: {HMAC Signature}' \
+  -H 'X-Dapp-SessionID: {Dapp Session ID}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "signature": {
+    "network": "testnet",
+    "recover": {
+      "data": {
+        "account": {user address},
+        "amount": {amount (wei)},
+        "deadline": "1760613499",
+        "fee_bps": "100",
+        "fee_recipient": {fee recipient wallet address}
+      }
+    }
+  },
+  "intent": {
+    "method": "mint || transfer",
+    "project_id": {project id},
+    "request": {
+      // client-defined request content
+    },
+    "request_id": {client-defined request id},
+    "token_id": {token id}    
+  }
+}'
+
+** If not applying fees, omit fee_bps and fee_recipient
 ```
 Response
 ```json
@@ -609,47 +563,27 @@ Response
   "code": 200,
   "message": "OK",
   "data": {
-    "nonce": "164"
+    "uuid": {uuid},
+    "forge_uuid": {uuid from forge},
+    "digest": {digest}
   }
 }
 ```
 
-#### 4. Mint or Transfer Request
+#### 2. Deliver validator signature for digest
 Request
 ```bash
 curl -X 'POST' \
-  'https://cross-ramp-api.crosstoken.io/api/v2/exchange' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/execute' \
   -H 'accept: application/json' \
-  -H 'X-Dapp-Authorization: {dapp authorization (JWT)}' \
-  -H 'X-Dapp-SessionID: {dapp session id}' \
+  -H 'X-HMAC-Signature: {HMAC Signature}' \
+  -H 'X-Dapp-SessionID: {Dapp Session ID}' \
   -H 'Content-Type: application/json' \
   -d '{
-  "intent": {
-    "method": "mint||transfer",
-    "project_id": {project id},
-    "request": {
-        // client-defined request content
-    },
-    "request_id": {client-defined request id},
-    "token_id": {token id}
-  },
-  "signature": {
-    "network": {network},
-    "recover": {
-      "data": {
-        "account": {user address},
-        "amount": {amount to mint (wei)},
-        "deadline": {request validity time},
-        "nonce": {user forge nonce},
-        "token": {token address},
-        "fee_bps": {fee rate},
-        "fee_recipient": {fee recipient wallet address},
-      }
-    }
-  }
+  "uuid": {uuid},
+  "forge_uuid": {uuid from forge},
+  "validator_sig": {validator signature}
 }'
-
-** If not applying fees, omit fee_bps and fee_recipient
 ```
 Response
 ```json
@@ -674,178 +608,8 @@ Response
 }
 ```
 
-### Case 2. Burn-Permit or Transfer-From-Permit (Decreasing tokens from user's wallet)
-In this case, user signature is required as assets in the user's wallet need to be moved.
-
-#### Diagram
-```mermaid
-sequenceDiagram
-    actor User
-    participant Client as "Client"
-    participant Backend as "CrossRamp Backend"
-    participant TokenForge as "TokenForge"
-
-    Client->>Backend: (3) Request eip712 message for user to sign
-    Backend->>Client: Deliver eip712 message
-    Client->>User: Request signature
-
-    Client->>Backend: (4) Request token burn-permit or transfer-from-permit
-    Backend->>TokenForge: Request recover data for transaction creation
-    TokenForge->>Backend: Deliver recover data
-    Backend->>Client: Deliver digest for validator signature (validate webhook)
-    Client->>Backend: Deliver validator signature for digest
-    Backend->>TokenForge: Request transaction
-    TokenForge->>Backend: Deliver transaction result (success/failure)
-    Backend->>Client: Deliver request result (success/failure) (result webhook)
-    Client->>User: Deliver request result (success/failure)
 ```
-
-#### 3. EIP712 Message Request
-Request
-```bash
-curl -X 'POST' \
-  'https://cross-ramp-api.crosstoken.io/api/v2/eip712/user' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "account": {user address},
-  "action": "burn-permit||transfer-from-permit",
-  "amount": {burn-permit or transfer-from-permit amount (wei)},
-  "network": {network},
-  "project_id": {project id},
-  "token": {token address}
-}'
-```
-Response
-```json
-{
-  "code": 200,
-  "message": "OK",
-  "data": {
-    "recover": {
-      "data": {
-        "account": {user address},
-        "amount": {burn-permit or transfer-from-permit amount (wei)},
-        "deadline": "1760498825",
-        "fee_bps": "0",
-        "fee_recipient": "0x0000000000000000000000000000000000000000",
-        "nonce": {user forge nonce},
-        "token": {token address}
-      },
-      "domain_separator": {domain separator},
-      "permit_nonce": {user permit nonce}
-    },
-    "hash": {unsigned hash},
-    "uuid": {forge uuid},
-    "params": [
-      {user address},
-      {
-        "domain": {
-          "chainId": {chain id},
-          "name": {token name},
-          "verifyingContract": {verifying contract address},
-          "version": "1"
-        },
-        "message": {
-          "deadline": "1760498825",
-          "nonce": {user permit nonce},
-          "owner": {user address},
-          "spender": {forge contract address},
-          "value": {burn-permit or transfer-from-permit amount (wei)}
-        },
-        "primaryType": "Permit",
-        "types": {
-          "Permit": [
-            {
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "name": "spender",
-              "type": "address"
-            },
-            {
-              "name": "value",
-              "type": "uint256"
-            },
-            {
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "name": "deadline",
-              "type": "uint256"
-            }
-          ]
-        }
-      }
-    ]
-  }
-}
-```
-
-#### 4. Burn-Permit or Transfer-From-Permit Request
-Request
-```bash
-curl -X 'POST' \
-  'https://cross-ramp-api.crosstoken.io/api/v2/exchange' \
-  -H 'accept: application/json' \
-  -H 'X-Dapp-Authorization: {dapp authorization}' \
-  -H 'X-Dapp-SessionID: {dapp session id}' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "intent": {
-    "method": "burn-permit||transfer-from-permit",
-    "project_id": {project id},
-    "request": {
-        // client-defined request content
-    },
-    "request_id": {client-defined request id},
-    "token_id": {token id}
-  },
-  "signature": {
-    "hash": {unsigned hash},
-    "network": {network},
-    "recover": {
-      "data": {
-        "account": {user address},
-        "amount": {burn-permit or transfer-from-permit amount (wei)},
-        "deadline": "1760499638",
-        "fee_bps": "0",
-        "fee_recipient": "0x0000000000000000000000000000000000000000",
-        "nonce": "168",
-        "token": {token address}
-      },
-      "domain_separator": {domain separator},
-      "permit_nonce": "30"
-    },
-    "user_sig": {user signature}
-  }
-}'
-
-** For signature.recover, use the recover from the eip712 message API result as is
-```
-Response
-```json
-{
-  "code": 200,
-  "message": "OK",
-  "data": {
-    "session_id": {dapp session id},
-    "uuid": {ramp server uuid},
-    "tx_hash": {transaction hash},
-    "receipt": {transaction receipt},
-    "intent": {
-      "project_id": {project id},
-      "token_id": {token id},
-      "method": "burn-permit||transfer-from-permit",
-      "request_id": {client-defined request id},
-      "request": {
-        // client-defined request content
-      }
-    }
-  }
-}
+⚠️ X-HMAC-Signature for each request is generated from the request body of that request
 ```
 
 ---
