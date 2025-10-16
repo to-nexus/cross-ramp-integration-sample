@@ -499,6 +499,123 @@ According to these rules, webhook transmission will attempt retransmission up to
 
 ---
 
+## API Only
+This feature allows token minting and burning through direct communication between the client server (game company, etc.) and ramp API server without going through the CrossRamp front-end.
+
+### Case 1. Mint or Transfer (Issuing tokens to users)
+#### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as "Client"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"
+
+    User->>Client: request token mint or transfer order
+
+    Client->>Backend: (1) Request prepare for token mint or transfer order
+    Backend->>TokenForge: Request recover data for transaction creation
+    TokenForge->>Backend: Deliver recover data
+    Backend->>Client: Deliver digest for validator signature (with uuid, forge uuid)
+    Client->>Backend: (2) Deliver validator signature for digest (request exchange execution)
+    Backend->>TokenForge: Request transaction
+    TokenForge->>Backend: Deliver transaction result (success/failure)
+    Backend->>Client: Deliver request result (success/failure) (result webhook)
+    Client->>User: Deliver request result (success/failure)
+```
+
+#### 1. Request prepare for token mint or transfer order
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/prepare' \
+  -H 'accept: application/json' \
+  -H 'X-HMAC-Signature: {HMAC Signature}' \
+  -H 'X-Dapp-SessionID: {Dapp Session ID}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "signature": {
+    "network": "testnet",
+    "recover": {
+      "data": {
+        "account": {user address},
+        "amount": {amount (wei)},
+        "deadline": "1760613499",
+        "fee_bps": "100",
+        "fee_recipient": {fee recipient wallet address}
+      }
+    }
+  },
+  "intent": {
+    "method": "mint || transfer",
+    "project_id": {project id},
+    "request": {
+      // client-defined request content
+    },
+    "request_id": {client-defined request id},
+    "token_id": {token id}    
+  }
+}'
+
+** If not applying fees, omit fee_bps and fee_recipient
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "uuid": {uuid},
+    "forge_uuid": {uuid from forge},
+    "digest": {digest}
+  }
+}
+```
+
+#### 2. Deliver validator signature for digest
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/execute' \
+  -H 'accept: application/json' \
+  -H 'X-HMAC-Signature: {HMAC Signature}' \
+  -H 'X-Dapp-SessionID: {Dapp Session ID}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "uuid": {uuid},
+  "forge_uuid": {uuid from forge},
+  "validator_sig": {validator signature}
+}'
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "session_id": {dapp session id},
+    "uuid": {ramp server uuid},
+    "tx_hash": {transaction hash},
+    "receipt": {transaction receipt},
+    "intent": {
+      "project_id": {project id},
+      "token_id": {token id},
+      "method": "mint||transfer",
+      "request_id": {client-defined request id},
+      "request": {
+        // client-defined request content
+      }
+    }
+  }
+}
+```
+
+```
+⚠️ X-HMAC-Signature for each request is generated from the request body of that request
+```
+
+---
+
 ## Recent Updates
 
 **v1.1.0 (2024-12-28)**

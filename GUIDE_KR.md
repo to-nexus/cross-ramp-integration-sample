@@ -486,6 +486,119 @@ CROSS RAMP가 <b>*교환 주문 결과*</b> 웹훅에 대한 응답을 수신하
 }
 ```
 
+## API Only
+CrossRamp front-end를 거치지 않고 client 서버(게임사 등)와 ramp api 서버 간 직접 통신으로 token을 mint, burn 하는 기능입니다.
+### Case 1. Mint or Transfer (User에게 토큰을 발행하는 경우)
+#### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as "Client"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"\
+
+    User->>Client: token mint 또는 transfer 주문 요청
+
+    Client->>Backend: (1) token mint 또는 transfer 주문의 prepare 요청
+    Backend->>TokenForge: Transaction 생성을 위한 Recover 데이터 요청
+    TokenForge->>Backend: Recover 데이터 전달
+    Backend->>Client: Validator 서명을 위한 Digest 전달 (with uuid, forge uuid)
+    Client->>Backend: (2) Digest에 대한 Validator 서명 전달 (exchange 실행 요청)
+    Backend->>TokenForge: transaction 요청
+    TokenForge->>Backend: Transaction 결과 전달(성공/실패)
+    Backend->>Client: 요청 결과 전달(성공/실패) (result webhook)
+    Client->>User: 요청 결과 전달(성공/실패)
+```
+
+#### 1. Token mint 또는 transfer 주문의 prepare 요청
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/prepare' \
+  -H 'accept: application/json' \
+  -H 'X-HMAC-Signature: {HMAC Signature}' \
+  -H 'X-Dapp-SessionID: {Dapp Session ID}' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "signature": {
+    "network": "testnet",
+    "recover": {
+      "data": {
+        "account": {user 주소},
+        "amount": {amount (wei)},
+        "deadline": "1760613499",
+        "fee_bps": "100",
+        "fee_recipient": {fee 수령 지갑 주소}
+      }
+    }
+  },
+  "intent": {
+    "method": "mint || transfer",
+    "project_id": {project id},
+    "request": {
+      // client 정의 request 내용
+    },
+    "request_id": {client 정의 request id},
+    "token_id": {token id}    
+  }
+}'
+
+** fee_bps 및 fee_recipient의 경우 수수료를 적용하지 않는 경우 미기입
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "uuid": {uuid},
+    "forge_uuid": {uuid from forge},
+    "digest": {digest}
+  }
+}
+```
+
+#### 2. Digest에 대한 Validator 서명 전달
+Request
+```bash
+curl -X 'POST' \
+  'https://cross-ramp-api.crosstoken.io/api/v2/execute' \
+  -H 'accept: application/json' \
+  -H 'X-HMAC-Signature: {HMAC Signature}' \
+  -H 'X-Dapp-SessionID: 123123123123' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "uuid": {uuid},
+  "forge_uuid": {uuid from forge},
+  "validator_sig": {validator signature}
+}'
+```
+Response
+```json
+{
+  "code": 200,
+  "message": "OK",
+  "data": {
+    "session_id": {dapp session id},
+    "uuid": {ramp server uuid},
+    "tx_hash": {transcation hash},
+    "receipt": {transaction receipt},
+    "intent": {
+      "project_id": {project id},
+      "token_id": {token id},
+      "method": "mint||transfer",
+      "request_id": {client 정의 request id},
+      "request": {
+        //client 정의 request 내용
+      }
+    }
+  }
+}
+```
+```
+⚠️ 각 요청의 X-HMAC-Signature는 해당 요청의 request body로 생성
+```
+---
 ## 요약
 
 - 인게임 유저 accessToken, 캐릭터 식별을 위한 sessionId가 필요 합니다.
