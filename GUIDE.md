@@ -511,6 +511,8 @@ sequenceDiagram
     participant Backend as "CrossRamp Backend"
     participant TokenForge as "TokenForge"
 
+    User->>Client: request token mint or transfer order
+
     Client->>Backend: (1) Request prepare for token mint or transfer order
     Backend->>TokenForge: Request recover data for transaction creation
     TokenForge->>Backend: Deliver recover data

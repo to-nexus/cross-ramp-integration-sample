@@ -497,6 +497,8 @@ sequenceDiagram
     participant Backend as "CrossRamp Backend"
     participant TokenForge as "TokenForge"\
 
+    User->>Client: token mint 또는 transfer 주문 요청
+
     Client->>Backend: (1) token mint 또는 transfer 주문의 prepare 요청
     Backend->>TokenForge: Transaction 생성을 위한 Recover 데이터 요청
     TokenForge->>Backend: Recover 데이터 전달
