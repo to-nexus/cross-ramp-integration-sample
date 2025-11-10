@@ -340,6 +340,129 @@ curl -X POST "https://api.yourgame.com/reclaim" \
   }
 }
 ```
+---
+## Seamless Ramp
+- cross console을 통해 asset 또는 pair를 등록하지 않고 ramp를 사용할 수 있도록 지원
+### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Game as "Game Backend"
+    participant Frontend as "CrossRamp Frontend"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"
+
+    User->>Game: 조합스크롤 선택 및 ramp 오픈 요청
+    Game->>Backend: 유저정보, 유저보유 asset 정보, 조합 내용 전달
+    Backend->>Backend: 유저정보, 유저보유 asset 정보, 조합 내용 캐싱 (with uuid)
+    Backend->>Game: uuid 발급
+    Game->>Frontend: 웹뷰 열기 (with uuid)
+    Frontend->>Backend: 유저정보, 유저보유 asset 정보, 조합 내용 요청
+    Backend->>Frontend: 유저정보, 유저보유 asset 정보, 조합 내용 전달
+    User->>Frontend: mint/burn (민팅/구매) 요청 버튼 클릭 및 서명
+
+    Frontend->>Backend: 사용자 요청 정보 전달 - 상품, 수량, 유저 서명(permit) 등
+
+    Backend->>Game: (2) Validate, Buy Or Sell 정보 전달 - 상품, 수량 등(JWT(ingame or cross auth), userSignature)
+
+    Game->>Game: 사용자 요청 검증 및 민팅의 경우 인게임 재화 감소
+    Game->>Game: validator sign
+
+    Game-->>Backend: validator sig 이하 상세 내용은 token forge flow 참조
+    Backend->>TokenForge: 트랜잭션 요청
+    TokenForge-->>Backend: 트랜잭션 결과 전달
+    Backend-->>Frontend: 사용자 요청 결과 전달(성공/실패)
+    Backend-->>Game: (3) Result, 사용자 요청 결과 전달(성공/실패) webhook
+    Game->>Game: 민팅 실패 결과 수신 시 인게임 재화 복구
+    Frontend-->>User: 사용자 요청 결과 전달(성공/실패)
+```
+- 유저정보, 유저보유 asset 정보, 조합 내용 구조체
+```json
+{
+    "player_id": "player_id_01",
+    "name": "character_name_01",
+    "wallet_address": "0xwalletaddresss...",
+    "server": "server_01",
+    "assets": [
+        {
+            "id": "FT_01",
+            "balance": 1000,
+            "icon_url": "http://icon_01.url",
+            "is_non_fungible": false
+        },
+        {
+            "id": "FT_02",
+            "balance": 2000,
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
+        },
+        {
+            "id": "NFT_01",          
+            "balance": "1",
+            "uid": "uid_01",
+            "icon_url": "http://icon_03.url",
+            "is_non_fungible": true
+            "attributes": [
+                {
+                    "traity_type": "rarity",
+                    "value": 0
+                },
+                {
+                    "traity_type": "rarity_string",
+                    "value": "common"
+                },
+                {
+                    "trait_type": "damage",
+                    "value": 255
+                }, 
+                {
+                    "trait_type": "class",
+                    "value": "sword"
+                }
+            ]
+        },
+        ...
+    ],
+    "intent": {
+        "materials": [
+            {
+                "id": "FT_01",
+                "amount": 100
+            },
+            {
+                "id": "FT_02",
+                "amount": 200
+            }
+        ],
+        "project_id": "project_id_01",
+        "token": {
+            "address": "0xtokenaddress...",
+            "amount": 1
+        }
+    }
+}
+```
+### 유저정보, 유저보유 asset 정보, 조합 내용 전달 API
+#### Request 예시
+```bash
+curl -X POST "https://api.yourgame.com/reclaim" \
+  -H "Content-Type: application/json" \
+  -H "X-HMAC-SIGNATURE: <HMAC_SIGNATURE>" \
+  -H "X-Dapp-Authorization: Bearer <DAPP_ACCESS_TOKEN>" \
+  -H "X-Dapp-SessionID: <DAPP_SESSION_ID>" \
+  -d '{
+      // 실제 api 개발 후 추가 예정
+  }'
+```
+#### Response 예시
+```json
+{
+  "success": true,
+  "data": {
+     // 실제 api 개발 후 추가 예정
+  }
+}
+```
 
 ## HMAC-Signature
 
