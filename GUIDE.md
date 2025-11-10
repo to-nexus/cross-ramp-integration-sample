@@ -345,6 +345,132 @@ curl -X POST "https://api.yourgame.com/reclaim" \
 }
 ```
 
+---
+
+## Seamless Ramp
+- Enables using ramp without registering assets or pairs through cross console
+
+### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Game as "Game Backend"
+    participant Frontend as "CrossRamp Frontend"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"
+
+    User->>Game: Select combination scroll and request ramp open
+    Game->>Backend: Deliver user info, user asset info, combination content
+    Backend->>Backend: Cache user info, user asset info, combination content (with uuid)
+    Backend->>Game: Issue uuid
+    Game->>Frontend: Open webview (with uuid)
+    Frontend->>Backend: Request user info, user asset info, combination content
+    Backend->>Frontend: Deliver user info, user asset info, combination content
+    User->>Frontend: Click mint/burn (minting/purchase) request button and sign
+
+    Frontend->>Backend: Deliver user request information - product, quantity, user signature(permit), etc.
+
+    Backend->>Game: (2) Validate, Deliver Buy Or Sell information - product, quantity, etc.(JWT(ingame or cross auth), userSignature)
+
+    Game->>Game: Validate user request and reduce in-game currency for minting
+    Game->>Game: validator sign
+
+    Game-->>Backend: validator sig (detailed content follows token forge flow)
+    Backend->>TokenForge: Request transaction
+    TokenForge-->>Backend: Deliver transaction result
+    Backend-->>Frontend: Deliver user request result (success/failure)
+    Backend-->>Game: (3) Result, Deliver user request result (success/failure) webhook
+    Game->>Game: Restore in-game currency on minting failure result
+    Frontend-->>User: Deliver user request result (success/failure)
+```
+
+- User info, user asset info, combination content structure
+```json
+{
+    "player_id": "player_id_01",
+    "name": "character_name_01",
+    "wallet_address": "0xwalletaddresss...",
+    "server": "server_01",
+    "assets": [
+        {
+            "id": "asset_gold",
+            "balance": 1000,
+            "icon_url": "http://icon_01.url",
+            "is_non_fungible": false
+        },
+        {
+            "id": "asset_silver",
+            "balance": 2000,
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
+        },
+        {
+            "id": "big_sword",          
+            "balance": "1",
+            "uid": "big_sword_uid_01",
+            "icon_url": "http://icon_03.url",
+            "is_non_fungible": true,
+            "attributes": [
+                {
+                    "trait_type": "rarity",
+                    "value": 0
+                },
+                {
+                    "trait_type": "rarity_string",
+                    "value": "common"
+                },
+                {
+                    "trait_type": "damage",
+                    "value": 255
+                }, 
+                {
+                    "trait_type": "class",
+                    "value": "sword"
+                }
+            ]
+        },
+        ...
+    ],
+    "intent": {
+        "materials": [
+            {
+                "id": "asset_gold",
+                "amount": 100
+            },
+            {
+                "id": "asset_silver",
+                "amount": 200
+            }
+        ],
+        "project_id": "project_id_01",
+        "token": "0xtokenaddress..."
+    }
+}
+```
+
+### API for Delivering User Info, User Asset Info, and Combination Content
+#### Request Example
+* Request validity is verified through HMAC
+```bash
+curl -X POST "https://api.yourgame.com/reclaim" \
+  -H "Content-Type: application/json" \
+  -H "X-HMAC-SIGNATURE: <HMAC_SIGNATURE>" \
+  -H "X-Dapp-Authorization: Bearer <DAPP_ACCESS_TOKEN>" \
+  -H "X-Dapp-SessionID: <DAPP_SESSION_ID>" \
+  -d '{
+      // To be added after actual API development
+  }'
+```
+#### Response Example
+```json
+{
+  "success": true,
+  "data": {
+     // To be added after actual API development
+  }
+}
+```
+
 ## HMAC-Signature
 
 For security requests requiring mutual trust, HMAC is used and signature values are required in the header with the `X-HMAC-SIGNATURE` key.

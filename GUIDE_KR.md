@@ -385,21 +385,21 @@ sequenceDiagram
     "server": "server_01",
     "assets": [
         {
-            "id": "FT_01",
+            "id": "asset_gold",
             "balance": 1000,
             "icon_url": "http://icon_01.url",
             "is_non_fungible": false
         },
         {
-            "id": "FT_02",
+            "id": "asset_silver",
             "balance": 2000,
             "icon_url": "http://icon_02.url",
             "is_non_fungible": false
         },
         {
-            "id": "NFT_01",          
+            "id": "big_sword",          
             "balance": "1",
-            "uid": "uid_01",
+            "uid": "big_sword_uid_01",
             "icon_url": "http://icon_03.url",
             "is_non_fungible": true
             "attributes": [
@@ -426,24 +426,22 @@ sequenceDiagram
     "intent": {
         "materials": [
             {
-                "id": "FT_01",
+                "id": "asset_gold",
                 "amount": 100
             },
             {
-                "id": "FT_02",
+                "id": "asset_silver",
                 "amount": 200
             }
         ],
         "project_id": "project_id_01",
-        "token": {
-            "address": "0xtokenaddress...",
-            "amount": 1
-        }
+        "token": "0xtokenaddress..."
     }
 }
 ```
 ### 유저정보, 유저보유 asset 정보, 조합 내용 전달 API
 #### Request 예시
+* 요청에 대한 타당성은 HMAC을 통해 검증
 ```bash
 curl -X POST "https://api.yourgame.com/reclaim" \
   -H "Content-Type: application/json" \
