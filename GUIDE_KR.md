@@ -398,10 +398,10 @@ sequenceDiagram
         },
         {
             "id": "big_sword",          
-            "balance": "1",
+            "balance": 1,
             "uid": "big_sword_uid_01",
             "icon_url": "http://icon_03.url",
-            "is_non_fungible": true
+            "is_non_fungible": true,
             "attributes": [
                 {
                     "traity_type": "rarity",
