@@ -425,14 +425,20 @@ sequenceDiagram
     ],
     "intent": {
         "materials": [
-            {
-                "id": "asset_gold",
-                "amount": 100
-            },
-            {
-                "id": "asset_silver",
-                "amount": 200
-            }
+          {
+            "id": "asset_gold",
+            "amount": 100
+          },
+          {
+            "id": "asset_silver",
+            "amount": 200
+          }
+        ],
+        "outputs": [
+          {
+            "id": "asset_silver",
+            "amount": 500
+          }
         ],
         "project_id": "project_id_01",
         "token": "0xtokenaddress..."
