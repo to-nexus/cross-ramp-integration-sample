@@ -432,6 +432,11 @@ sequenceDiagram
         ...
     ],
     "intent": {
+        "network": "testnet",
+        "project_id": "project_id_01",
+        "token": "0xtokenaddress...",
+        "fee_bps": 100,
+        "fee_recipient": "0xfeerecipientaddress...",
         "materials": [
           {
             "id": "asset_gold",
@@ -453,11 +458,7 @@ sequenceDiagram
             "icon_url": "http://icon_02.url",
             "is_non_fungible": false
           }
-        ],
-        "project_id": "project_id_01",
-        "token": "0xtokenaddress...",
-        "fee_bps": 100,
-        "fee_recipient": "0xfeerecipientaddress..."
+        ]
     }
 }
 ```
