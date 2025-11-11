@@ -435,17 +435,23 @@ sequenceDiagram
         "materials": [
           {
             "id": "asset_gold",
-            "amount": 100
+            "amount": 100,
+            "icon_url": "http://icon_01.url",
+            "is_non_fungible": false
           },
           {
             "id": "asset_silver",
-            "amount": 200
+            "amount": 200,
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
           }
         ],
         "outputs": [
           {
             "id": "asset_silver",
-            "amount": 500
+            "amount": 500,
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
           }
         ],
         "project_id": "project_id_01",
