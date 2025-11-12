@@ -427,7 +427,8 @@ sequenceDiagram
         "network": "testnet",
         "project_id": "project_id_01",
         "token": "0xtokenaddress...",
-        "fee_bps": 100,
+        "mint_fee_bps": 100,
+        "burn_fee_bps": 0,
         "materials": [
           {
             "id": "asset_gold",
