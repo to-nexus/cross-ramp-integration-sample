@@ -428,7 +428,6 @@ sequenceDiagram
         "project_id": "project_id_01",
         "token": "0xtokenaddress...",
         "fee_bps": 100,
-        "fee_recipient": "0xfeerecipientaddress...",
         "materials": [
           {
             "id": "asset_gold",
