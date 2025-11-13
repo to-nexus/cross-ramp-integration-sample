@@ -437,6 +437,8 @@ sequenceDiagram
         "token": "0xtokenaddress...",
         "mint_fee_bps": 100,
         "burn_fee_bps": 0,
+        "mint_method": "mint",
+        "burn_method": "burn-permit",
         "materials": [
           {
             "id": "asset_gold",
