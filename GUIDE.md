@@ -394,19 +394,19 @@ sequenceDiagram
     "assets": [
         {
             "id": "asset_gold",
-            "balance": 1000,
+            "balance": "1000",
             "icon_url": "http://icon_01.url",
             "is_non_fungible": false
         },
         {
             "id": "asset_silver",
-            "balance": 2000,
+            "balance": "2000",
             "icon_url": "http://icon_02.url",
             "is_non_fungible": false
         },
         {
             "id": "big_sword",          
-            "balance": 1,
+            "balance": "1",
             "uid": "big_sword_uid_01",
             "icon_url": "http://icon_03.url",
             "is_non_fungible": true,
