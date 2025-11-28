@@ -376,13 +376,15 @@ sequenceDiagram
     Game->>Game: 민팅 실패 결과 수신 시 인게임 재화 복구
     Frontend-->>User: 사용자 요청 결과 전달(성공/실패)
 ```
-- 유저정보, 유저보유 asset 정보, 조합 내용 구조체
+- 유저정보, 유저보유 asset 정보, 조합 내용 구조체 [ERC20]
+>! assets의 경우 유저 인벤토리의 모든 아이템을 명시하는 것이 아닌, 교환에 필요한 아이템만을 명시
 ```json
 {
     "player_id": "player_id_01",
     "name": "character_name_01",
     "wallet_address": "0xwalletaddresss...",
     "server": "server_01",
+    "is_non_fungible": false,
     "assets": [
         {
             "id": "asset_gold",
@@ -395,31 +397,6 @@ sequenceDiagram
             "balance": "2000",
             "icon_url": "http://icon_02.url",
             "is_non_fungible": false
-        },
-        {
-            "id": "big_sword",          
-            "balance": "1",
-            "uid": "big_sword_uid_01",
-            "icon_url": "http://icon_03.url",
-            "is_non_fungible": true,
-            "attributes": [
-                {
-                    "traity_type": "rarity",
-                    "value": 0
-                },
-                {
-                    "traity_type": "rarity_string",
-                    "value": "common"
-                },
-                {
-                    "trait_type": "damage",
-                    "value": 255
-                }, 
-                {
-                    "trait_type": "class",
-                    "value": "sword"
-                }
-            ]
         },
         ...
     ],
@@ -456,6 +433,65 @@ sequenceDiagram
     }
 }
 ```
+- 유저정보, 유저보유 asset 정보, 조합 내용 구조체 [ERC721-mint]
+```json
+{
+  "player_id": "player_02",
+  "name": "character_name_02",
+  "server": "server_02",
+  "wallet_address": "0xuseraddress...",
+  "is_non_fungible": true,
+  "assets": [
+    {
+      "attributes": [
+        {
+          "trait_type": "con",
+          "value": 100
+        },
+        {
+          "trait_type": "dex",
+          "value": 100
+        },
+        {
+          "trait_type": "str",
+          "value": 100
+        }
+      ],
+      "balance": "1",
+      "icon_url": "https://icon_03.url",
+      "id": "character",
+      "uid": "character_01"
+    }
+  ],
+  "intent": {
+    "burn_method": "burn",
+    "mint_method": "mint",
+    "network": "testnet",
+    "project_id": "project_id_02",
+    "token": "0xtokenaddress..."
+  }
+}
+```
+- 유저정보, 유저보유 asset 정보, 조합 내용 구조체 [ERC721-burn]
+>! ERC721 burn의 경우에는 assets 미기입
+```json
+{
+  "player_id": "player_02",
+  "name": "character_name_02",
+  "server": "server_02",
+  "wallet_address": "0xuseraddress...",
+  "is_non_fungible": true,
+  "assets": [],
+  "intent": {
+    "burn_method": "burn",
+    "mint_method": "mint",
+    "network": "testnet",
+    "project_id": "project_id_02",
+    "token": "0xtokenaddress..."
+  }
+}
+```
+
 ### 유저정보, 유저보유 asset 정보, 조합 내용 전달 API
 #### Request 예시
 * 요청에 대한 타당성은 HMAC을 통해 검증

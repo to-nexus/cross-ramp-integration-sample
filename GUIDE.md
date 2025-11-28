@@ -384,13 +384,15 @@ sequenceDiagram
     Frontend-->>User: Deliver user request result (success/failure)
 ```
 
-- User info, user asset info, combination content structure
+- User info, user asset info, combination content structure [ERC20]
+>! For assets, only specify the items needed for exchange, not all items in the user's inventory
 ```json
 {
     "player_id": "player_id_01",
     "name": "character_name_01",
     "wallet_address": "0xwalletaddresss...",
     "server": "server_01",
+    "is_non_fungible": false,
     "assets": [
         {
             "id": "asset_gold",
@@ -403,31 +405,6 @@ sequenceDiagram
             "balance": "2000",
             "icon_url": "http://icon_02.url",
             "is_non_fungible": false
-        },
-        {
-            "id": "big_sword",          
-            "balance": "1",
-            "uid": "big_sword_uid_01",
-            "icon_url": "http://icon_03.url",
-            "is_non_fungible": true,
-            "attributes": [
-                {
-                    "trait_type": "rarity",
-                    "value": 0
-                },
-                {
-                    "trait_type": "rarity_string",
-                    "value": "common"
-                },
-                {
-                    "trait_type": "damage",
-                    "value": 255
-                }, 
-                {
-                    "trait_type": "class",
-                    "value": "sword"
-                }
-            ]
         },
         ...
     ],
@@ -462,6 +439,64 @@ sequenceDiagram
           }
         ]
     }
+}
+```
+- User info, user asset info, combination content structure [ERC721-mint]
+```json
+{
+  "player_id": "player_02",
+  "name": "character_name_02",
+  "server": "server_02",
+  "wallet_address": "0xuseraddress...",
+  "is_non_fungible": true,
+  "assets": [
+    {
+      "attributes": [
+        {
+          "trait_type": "con",
+          "value": 100
+        },
+        {
+          "trait_type": "dex",
+          "value": 100
+        },
+        {
+          "trait_type": "str",
+          "value": 100
+        }
+      ],
+      "balance": "1",
+      "icon_url": "https://icon_03.url",
+      "id": "character",
+      "uid": "character_01"
+    }
+  ],
+  "intent": {
+    "burn_method": "burn",
+    "mint_method": "mint",
+    "network": "testnet",
+    "project_id": "project_id_02",
+    "token": "0xtokenaddress..."
+  }
+}
+```
+- User info, user asset info, combination content structure [ERC721-burn]
+>! For ERC721 burn, assets should not be specified
+```json
+{
+  "player_id": "player_02",
+  "name": "character_name_02",
+  "server": "server_02",
+  "wallet_address": "0xuseraddress...",
+  "is_non_fungible": true,
+  "assets": [],
+  "intent": {
+    "burn_method": "burn",
+    "mint_method": "mint",
+    "network": "testnet",
+    "project_id": "project_id_02",
+    "token": "0xtokenaddress..."
+  }
 }
 ```
 
