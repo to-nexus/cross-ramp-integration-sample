@@ -345,6 +345,184 @@ curl -X POST "https://api.yourgame.com/reclaim" \
 }
 ```
 
+---
+
+## Seamless Ramp
+- Enables using ramp without registering assets or pairs through cross console
+
+### Diagram
+```mermaid
+sequenceDiagram
+    actor User
+    participant Game as "Game Backend"
+    participant Frontend as "CrossRamp Frontend"
+    participant Backend as "CrossRamp Backend"
+    participant TokenForge as "TokenForge"
+
+    User->>Game: Select combination scroll and request ramp open
+    Game->>Backend: Deliver user info, user asset info, combination content
+    Backend->>Backend: Cache user info, user asset info, combination content (with uuid)
+    Backend->>Game: Issue uuid
+    Game->>Frontend: Open webview (with uuid)
+    Frontend->>Backend: Request user info, user asset info, combination content
+    Backend->>Frontend: Deliver user info, user asset info, combination content
+    User->>Frontend: Click mint/burn (minting/purchase) request button and sign
+
+    Frontend->>Backend: Deliver user request information - product, quantity, user signature(permit), etc.
+
+    Backend->>Game: (2) Validate, Deliver Buy Or Sell information - product, quantity, etc.(JWT(ingame or cross auth), userSignature)
+
+    Game->>Game: Validate user request and reduce in-game currency for minting
+    Game->>Game: validator sign
+
+    Game-->>Backend: validator sig (detailed content follows token forge flow)
+    Backend->>TokenForge: Request transaction
+    TokenForge-->>Backend: Deliver transaction result
+    Backend-->>Frontend: Deliver user request result (success/failure)
+    Backend-->>Game: (3) Result, Deliver user request result (success/failure) webhook
+    Game->>Game: Restore in-game currency on minting failure result
+    Frontend-->>User: Deliver user request result (success/failure)
+```
+
+- User info, user asset info, combination content structure [ERC20]
+>! For assets, only specify the items needed for exchange, not all items in the user's inventory
+```json
+{
+    "player_id": "player_id_01",
+    "name": "character_name_01",
+    "wallet_address": "0xwalletaddresss...",
+    "server": "server_01",
+    "is_non_fungible": false,
+    "assets": [
+        {
+            "id": "asset_gold",
+            "balance": "1000",
+            "icon_url": "http://icon_01.url",
+            "is_non_fungible": false
+        },
+        {
+            "id": "asset_silver",
+            "balance": "2000",
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
+        },
+        ...
+    ],
+    "intent": {
+        "network": "testnet",
+        "project_id": "project_id_01",
+        "token": "0xtokenaddress...",
+        "mint_fee_bps": 100,
+        "burn_fee_bps": 0,
+        "mint_method": "mint",
+        "burn_method": "burn-permit",
+        "materials": [
+          {
+            "id": "asset_gold",
+            "amount": 100,
+            "icon_url": "http://icon_01.url",
+            "is_non_fungible": false
+          },
+          {
+            "id": "asset_silver",
+            "amount": 200,
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
+          }
+        ],
+        "outputs": [
+          {
+            "id": "asset_silver",
+            "amount": 500,
+            "icon_url": "http://icon_02.url",
+            "is_non_fungible": false
+          }
+        ]
+    }
+}
+```
+- User info, user asset info, combination content structure [ERC721-mint]
+```json
+{
+  "player_id": "player_02",
+  "name": "character_name_02",
+  "server": "server_02",
+  "wallet_address": "0xuseraddress...",
+  "is_non_fungible": true,
+  "assets": [
+    {
+      "attributes": [
+        {
+          "trait_type": "con",
+          "value": 100
+        },
+        {
+          "trait_type": "dex",
+          "value": 100
+        },
+        {
+          "trait_type": "str",
+          "value": 100
+        }
+      ],
+      "balance": "1",
+      "icon_url": "https://icon_03.url",
+      "id": "character",
+      "uid": "character_01"
+    }
+  ],
+  "intent": {
+    "burn_method": "burn",
+    "mint_method": "mint",
+    "network": "testnet",
+    "project_id": "project_id_02",
+    "token": "0xtokenaddress..."
+  }
+}
+```
+- User info, user asset info, combination content structure [ERC721-burn]
+>! For ERC721 burn, assets should not be specified
+```json
+{
+  "player_id": "player_02",
+  "name": "character_name_02",
+  "server": "server_02",
+  "wallet_address": "0xuseraddress...",
+  "is_non_fungible": true,
+  "assets": [],
+  "intent": {
+    "burn_method": "burn",
+    "mint_method": "mint",
+    "network": "testnet",
+    "project_id": "project_id_02",
+    "token": "0xtokenaddress..."
+  }
+}
+```
+
+### API for Delivering User Info, User Asset Info, and Combination Content
+#### Request Example
+* Request validity is verified through HMAC
+```bash
+curl -X POST "https://api.yourgame.com/reclaim" \
+  -H "Content-Type: application/json" \
+  -H "X-HMAC-SIGNATURE: <HMAC_SIGNATURE>" \
+  -H "X-Dapp-Authorization: Bearer <DAPP_ACCESS_TOKEN>" \
+  -H "X-Dapp-SessionID: <DAPP_SESSION_ID>" \
+  -d '{
+      // To be added after actual API development
+  }'
+```
+#### Response Example
+```json
+{
+  "success": true,
+  "data": {
+     // To be added after actual API development
+  }
+}
+```
+
 ## HMAC-Signature
 
 For security requests requiring mutual trust, HMAC is used and signature values are required in the header with the `X-HMAC-SIGNATURE` key.
